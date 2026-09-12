@@ -15,13 +15,10 @@ from florence2_vision_language_pipeline import (
     MODEL_KEY,
     MODEL_REVISION,
     NUM_BEAMS,
-    REMOTE_CODE_FILES,
-    REMOTE_CODE_POLICY,
     TASKS,
     TASKS_WITH_TEXT,
     Florence2Pipeline,
     character_error_rate,
-    remote_code_files,
     stage_missing_files,
     verify_snapshot,
 )
@@ -39,11 +36,8 @@ def _pipeline() -> Florence2Pipeline:
     return Florence2Pipeline(_fake_runner, "cpu", "injected")
 
 
-def _write_snapshot(root: Path, payload: bytes = b"weights", *, custom_code: bool = False) -> Path:
+def _write_snapshot(root: Path, payload: bytes = b"weights") -> Path:
     files = [("model.safetensors", payload), ("config.json", b'{"model_type": "florence2"}')]
-    if custom_code:
-        files[1] = ("config.json", b'{"model_type": "florence2", "auto_map": {}}')
-        files.append(("modeling_florence2.py", b"# custom code\n"))
     entries = []
     for name, content in files:
         (root / name).write_bytes(content)
@@ -56,11 +50,10 @@ def _write_snapshot(root: Path, payload: bytes = b"weights", *, custom_code: boo
 
 def test_identity_constants_are_40_hex_and_named():
     assert HEX40.match(MODEL_REVISION)
-    assert MODEL_ID == "microsoft/Florence-2-large"
-    assert DEFAULT_WEIGHTS_DIR.name == MODEL_KEY
+    assert MODEL_ID == "florence-community/Florence-2-large"
+    assert DEFAULT_WEIGHTS_DIR.name == MODEL_KEY == "florence-2-large-community"
     assert DEFAULT_WEIGHTS_DIR.parent.name == "weights"
-    assert REMOTE_CODE_POLICY == "refuse"
-    assert len(REMOTE_CODE_FILES) == 3
+    assert len(TASKS) == 9 and set(TASKS_WITH_TEXT) < set(TASKS)
 
 
 def test_identity_matches_local_manifest_when_present():
@@ -72,7 +65,8 @@ def test_identity_matches_local_manifest_when_present():
     assert manifest["revision"] == MODEL_REVISION
     assert manifest["modelKey"] == MODEL_KEY
     listed = {entry["path"] for entry in manifest["files"]}
-    assert set(REMOTE_CODE_FILES) <= listed  # the pinned snapshot ships custom code
+    assert "model.safetensors" in listed
+    assert not any(name.endswith(".py") for name in listed)  # native port: no custom code in the snapshot
 
 
 def test_verify_snapshot_accepts_matching_manifest(tmp_path: Path):
@@ -150,24 +144,8 @@ def test_stage_missing_files_refuses_foreign_manifest(tmp_path):
         stage_missing_files(tmp_path, allow_download=True, downloader=lambda *_: None)
 
 
-def test_remote_code_files_detects_custom_code(tmp_path):
-    _write_snapshot(tmp_path)
-    assert remote_code_files(tmp_path) == []
-    _write_snapshot(tmp_path, custom_code=True)
-    assert remote_code_files(tmp_path) == ["modeling_florence2.py", "config.json:auto_map"]
-
-
-def test_from_pretrained_refuses_remote_code_after_verifying(tmp_path):
-    """The verified microsoft snapshot carries custom code; loading is refused, never silently trusted."""
-    _write_snapshot(tmp_path, custom_code=True)
-    with pytest.raises(RuntimeError, match="refuses") as excinfo:
-        Florence2Pipeline.from_pretrained(device="cpu", weights_dir=tmp_path)
-    assert "pending" in str(excinfo.value)
-    assert MODEL_REVISION in str(excinfo.value)
-
-
-def test_from_pretrained_refuses_tampered_snapshot_before_remote_code_check(tmp_path):
-    manifest_path = _write_snapshot(tmp_path, custom_code=True)
+def test_from_pretrained_refuses_tampered_snapshot_before_loading(tmp_path):
+    manifest_path = _write_snapshot(tmp_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     manifest["files"][0]["sha256"] = "0" * 64
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
@@ -178,8 +156,20 @@ def test_from_pretrained_refuses_tampered_snapshot_before_remote_code_check(tmp_
 def test_from_pretrained_refuses_without_snapshot_or_download(tmp_path):
     with pytest.raises(FileNotFoundError, match="allow_download=False"):
         Florence2Pipeline.from_pretrained(weights_dir=tmp_path, allow_download=False)
-    with pytest.raises(RuntimeError, match="custom code"):
-        Florence2Pipeline.from_pretrained(weights_dir=tmp_path, allow_download=True)
+
+
+def test_run_passes_prompt_task_and_settings_to_runner():
+    calls = []
+
+    def runner(image, prompt, task, max_new_tokens, num_beams):
+        calls.append((image.size, prompt, task, max_new_tokens, num_beams))
+        return {"text": "</s><s>x</s>", "parsed": "x"}
+
+    pipe = Florence2Pipeline(runner, "cpu", "local-snapshot")
+    result = pipe.run(Image.new("RGB", (40, 30)), "<OCR>", max_new_tokens=8, num_beams=1)
+    assert calls == [((40, 30), "<OCR>", "<OCR>", 8, 1)]
+    assert result["generated_text"] == "</s><s>x</s>" and result["result"] == "x"
+    assert result["source"] == "local-snapshot"
 
 
 def test_run_rejects_bad_inputs():

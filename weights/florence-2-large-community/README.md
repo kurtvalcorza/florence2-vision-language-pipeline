@@ -4,15 +4,17 @@ license_link: https://huggingface.co/microsoft/Florence-2-large/resolve/main/LIC
 pipeline_tag: image-text-to-text
 tags:
 - vision
+library_name: transformers
 ---
+
+> [!NOTE]
+> This is the repository for official transformers converted checkpoint of Microsoft's Florence model. 
 
 # Florence-2: Advancing a Unified Representation for a Variety of Vision Tasks
 
 ## Model Summary
 
 **This is a continued pretrained version of Florence-2-large model with 4k context length, only 0.1B samples are used for continue pretraining, thus it might not be trained well. In addition, OCR task has been updated with line separator ('\n'). COCO OD AP 39.8**
-
-This Hub repository contains a HuggingFace's `transformers` implementation of Florence-2 model from Microsoft.
 
 Florence-2 is an advanced vision foundation model that uses a prompt-based approach to handle a wide range of vision and vision-language tasks.  Florence-2 can interpret simple text prompts to perform tasks like captioning, object detection, and segmentation. It leverages our FLD-5B dataset, containing 5.4 billion annotations across 126 million images, to master multi-task learning. The model's sequence-to-sequence architecture enables it to excel in both zero-shot and fine-tuned settings, proving to be a competitive vision foundation model. 
 
@@ -22,46 +24,44 @@ Resources and Technical Documentation:
 
 | Model   | Model size | Model Description | 
 | ------- | ------------- |   ------------- |  
-| Florence-2-base[[HF]](https://huggingface.co/microsoft/Florence-2-base) | 0.23B | Pretrained model with FLD-5B  
-| Florence-2-large[[HF]](https://huggingface.co/microsoft/Florence-2-large) | 0.77B  | Pretrained model with FLD-5B  
-| Florence-2-base-ft[[HF]](https://huggingface.co/microsoft/Florence-2-base-ft) | 0.23B  | Finetuned model on a colletion of downstream tasks
-| Florence-2-large-ft[[HF]](https://huggingface.co/microsoft/Florence-2-large-ft) | 0.77B | Finetuned model on a colletion of downstream tasks
+| Florence-2-base[[HF]](https://huggingface.co/florence-community/Florence-2-base) | 0.23B | Pretrained model with FLD-5B  
+| Florence-2-large[[HF]](https://huggingface.co/florence-community/Florence-2-large) | 0.77B  | Pretrained model with FLD-5B  
+| Florence-2-base-ft[[HF]](https://huggingface.co/florence-community/Florence-2-base-ft) | 0.23B  | Finetuned model on a colletion of downstream tasks
+| Florence-2-large-ft[[HF]](https://huggingface.co/florence-community/Florence-2-large-ft) | 0.77B | Finetuned model on a colletion of downstream tasks
  
 ## How to Get Started with the Model
 
-Use the code below to get started with the model. All models are trained with float16. 
+Use the code below to get started with the model.
 
 ```python
-import requests
-
 import torch
+import requests
 from PIL import Image
-from transformers import AutoProcessor, AutoModelForCausalLM 
+from transformers import AutoProcessor, Florence2ForConditionalGeneration, BitsAndBytesConfig
 
 
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-
-model = AutoModelForCausalLM.from_pretrained("microsoft/Florence-2-large", torch_dtype=torch_dtype, trust_remote_code=True).to(device)
-processor = AutoProcessor.from_pretrained("microsoft/Florence-2-large", trust_remote_code=True)
-
-prompt = "<OD>"
+model = Florence2ForConditionalGeneration.from_pretrained(
+    "florence-community/Florence-2-large",
+    dtype=torch.bfloat16,
+    device_map="auto",
+)
+processor = AutoProcessor.from_pretrained("florence-community/Florence-2-large")
 
 url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/car.jpg?download=true"
-image = Image.open(requests.get(url, stream=True).raw)
+image = Image.open(requests.get(url, stream=True).raw).convert("RGB")
 
-inputs = processor(text=prompt, images=image, return_tensors="pt").to(device, torch_dtype)
+task_prompt = "<OD>"
+inputs = processor(text=task_prompt, images=image, return_tensors="pt").to(model.device, torch.bfloat16)
 
 generated_ids = model.generate(
-    input_ids=inputs["input_ids"],
-    pixel_values=inputs["pixel_values"],
-    max_new_tokens=4096,
+    **inputs,
+    max_new_tokens=1024,
     num_beams=3,
-    do_sample=False
 )
 generated_text = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
 
-parsed_answer = processor.post_process_generation(generated_text, task="<OD>", image_size=(image.width, image.height))
+image_size = image.size
+parsed_answer = processor.post_process_generation(generated_text, task=task_prompt, image_size=image_size)
 
 print(parsed_answer)
 
@@ -73,45 +73,6 @@ print(parsed_answer)
 This model is capable of performing different tasks through changing the prompts.
 
 First, let's define a function to run a prompt.
-
-<details>
-<summary> Click to expand </summary>
-
-```python
-import requests
-
-import torch
-from PIL import Image
-from transformers import AutoProcessor, AutoModelForCausalLM 
-
-device = "cuda:0" if torch.cuda.is_available() else "cpu"
-torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
-
-model = AutoModelForCausalLM.from_pretrained("microsoft/Florence-2-large", torch_dtype=torch_dtype, trust_remote_code=True).to(device)
-processor = AutoProcessor.from_pretrained("microsoft/Florence-2-large", trust_remote_code=True)
-
-url = "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/tasks/car.jpg?download=true"
-image = Image.open(requests.get(url, stream=True).raw)
-
-def run_example(task_prompt, text_input=None):
-    if text_input is None:
-        prompt = task_prompt
-    else:
-        prompt = task_prompt + text_input
-    inputs = processor(text=prompt, images=image, return_tensors="pt").to(device, torch_dtype)
-    generated_ids = model.generate(
-      input_ids=inputs["input_ids"],
-      pixel_values=inputs["pixel_values"],
-      max_new_tokens=1024,
-      num_beams=3
-    )
-    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=False)[0]
-
-    parsed_answer = processor.post_process_generation(generated_text, task=task_prompt, image_size=(image.width, image.height))
-
-    print(parsed_answer)
-```
-</details>
 
 Here are the tasks `Florence-2` could perform:
 
@@ -192,45 +153,7 @@ prompt = "<OCR_WITH_REGION>"
 run_example(prompt)
 ```
 
-### Output confidence score with Object Detection
-```python
 
-def run_example_with_score(task_prompt, text_input=None):
-    if text_input is None:
-        prompt = task_prompt
-    else:
-        prompt = task_prompt + text_input
-    inputs = processor(text=prompt, images=image, return_tensors="pt").to(device, torch_dtype)
-    generated_ids = model.generate(
-      input_ids=inputs["input_ids"],
-      pixel_values=inputs["pixel_values"],
-      max_new_tokens=1024,
-      num_beams=3,
-      return_dict_in_generate=True,
-      output_scores=True,
-    )
-    generated_text = processor.batch_decode(generated_ids.sequences, skip_special_tokens=False)[0]
-
-    prediction, scores, beam_indices = generated_ids.sequences, generated_ids.scores, generated_ids.beam_indices
-    transition_beam_scores = model.compute_transition_scores(
-        sequences=prediction,
-        scores=scores,
-        beam_indices=beam_indices,
-    )
-
-    parsed_answer = processor.post_process_generation(sequence=generated_ids.sequences[0], 
-        transition_beam_score=transition_beam_scores[0],
-        task=task_prompt, image_size=(image.width, image.height)
-    )
-
-    print(parsed_answer)
-
-prompt = "<OD>"
-run_example_with_score(prompt)
-
-```
-
-for More detailed examples, please refer to [notebook](https://huggingface.co/microsoft/Florence-2-large/blob/main/sample_inference.ipynb)
 </details>
 
 # Benchmarks

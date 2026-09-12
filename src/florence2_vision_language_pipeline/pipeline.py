@@ -1,10 +1,9 @@
-"""Prompt-driven vision-language tasks with the pinned ``microsoft/Florence-2-large`` snapshot.
+"""Prompt-driven vision-language tasks with the pinned ``florence-community/Florence-2-large`` snapshot.
 
-The pinned snapshot ships its own ``modeling_florence2.py`` / ``processing_florence2.py`` and can only be
-loaded by executing that code (the ``trust_remote_code`` opt-in). This package refuses remote code: the
-snapshot is digest-verified, the presence of custom code is detected, and ``from_pretrained`` raises
-``RuntimeError`` until the pin decision recorded in ``REMOTE_CODE_POLICY`` is changed by the repository
-owner. The task method runs against an injected runner so the contract, validation and tests run offline.
+The class loads weights only from a digest-verified local snapshot (``weights/<key>/``) or, when explicitly
+allowed, from the Hugging Face Hub at the pinned revision, through the native ``transformers`` Florence-2
+classes with ``trust_remote_code=False``. Pin history: the original ``microsoft/Florence-2-large`` pin was
+rejected on 2026-09-12 because loading it requires executing custom code bundled in the model repository.
 """
 
 from __future__ import annotations
@@ -18,20 +17,16 @@ from typing import Any
 
 from PIL import Image
 
-MODEL_ID = "microsoft/Florence-2-large"
-MODEL_REVISION = "21a599d414c4d928c9032694c424fb94458e3594"
+MODEL_ID = "florence-community/Florence-2-large"
+MODEL_REVISION = "4271c66b88cdbc05735372ec13b2360108de5317"
 MODEL_LICENSE = "mit"
-MODEL_KEY = "florence-2-large"
+MODEL_KEY = "florence-2-large-community"
 DEFAULT_WEIGHTS_DIR = Path(__file__).resolve().parents[2] / "weights" / MODEL_KEY
 MANIFEST_NAME = "dimer-base-manifest.json"
 WEIGHTS_FILE = "model.safetensors"
 CONFIG_FILE = "config.json"
 
-# Custom-code files carried by the pinned snapshot. Loading them is refused (see REMOTE_CODE_POLICY).
-REMOTE_CODE_FILES = ("configuration_florence2.py", "modeling_florence2.py", "processing_florence2.py")
-REMOTE_CODE_POLICY = "refuse"  # the only value this package implements; "pending owner pin decision"
-
-# Task prompts from the pinned upstream README; the last one needs a caption as text input.
+# Task prompts documented upstream for Florence-2; the last one needs a caption as text input.
 TASKS_WITHOUT_TEXT = (
     "<CAPTION>",
     "<DETAILED_CAPTION>",
@@ -47,7 +42,7 @@ TASKS = TASKS_WITHOUT_TEXT + TASKS_WITH_TEXT
 
 MAX_IMAGE_SIDE = 4096  # pixels; the processor resizes to 768x768 regardless (preprocessor_config.json)
 MAX_TEXT_CHARS = 1000  # characters of caption text accepted for phrase grounding
-MAX_NEW_TOKENS = 1024  # upstream README examples use 1024; hard ceiling for `max_new_tokens`
+MAX_NEW_TOKENS = 1024  # hard ceiling for `max_new_tokens` (upstream examples use 1024)
 DEFAULT_MAX_NEW_TOKENS = 256
 NUM_BEAMS = 3  # snapshot generation_config.json; decoding is deterministic beam search (do_sample=False)
 
@@ -125,18 +120,6 @@ def stage_missing_files(
     return missing
 
 
-def remote_code_files(path: str | Path | None = None) -> list[str]:
-    """Custom-code files present in the snapshot, plus a marker when ``config.json`` declares ``auto_map``."""
-    root = Path(path or DEFAULT_WEIGHTS_DIR)
-    found = [name for name in REMOTE_CODE_FILES if (root / name).is_file()]
-    config_path = root / CONFIG_FILE
-    if config_path.is_file():
-        with open(config_path, encoding="utf-8") as fh:
-            if "auto_map" in json.load(fh):
-                found.append(f"{CONFIG_FILE}:auto_map")
-    return found
-
-
 def character_error_rate(reference: str, hypothesis: str) -> float:
     """Character-level Levenshtein distance over reference length; for OCR against a known transcript."""
     if not isinstance(reference, str) or not isinstance(hypothesis, str):
@@ -167,30 +150,44 @@ class Florence2Pipeline:
         weights_dir: str | Path | None = None,
         allow_download: bool = False,
     ) -> Florence2Pipeline:
+        import torch
+        from transformers import Florence2ForConditionalGeneration, Florence2Processor
+
         root = Path(weights_dir or DEFAULT_WEIGHTS_DIR)
-        if not (root / MANIFEST_NAME).is_file():
-            if allow_download:
-                raise RuntimeError(
-                    f"Hub loading of {MODEL_ID}@{MODEL_REVISION} requires executing its custom code; "
-                    f"REMOTE_CODE_POLICY={REMOTE_CODE_POLICY!r} refuses it (owner pin decision pending)"
-                )
+        resolved_device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
+        dtype = torch.float16 if resolved_device.startswith("cuda") else torch.float32
+        common: dict[str, Any] = {"trust_remote_code": False}
+        if (root / MANIFEST_NAME).is_file():
+            stage_missing_files(root, allow_download=allow_download)
+            verify_snapshot(root)
+            location, common["local_files_only"], source = str(root), True, "local-snapshot"
+        elif allow_download:
+            location, common["revision"], source = MODEL_ID, MODEL_REVISION, "hf-hub"
+        else:
             raise FileNotFoundError(
                 f"no verified snapshot at {root} and allow_download=False; "
                 f"stage it with: hf download {MODEL_ID} --revision {MODEL_REVISION} --local-dir {root}"
             )
-        stage_missing_files(root, allow_download=allow_download)
-        verify_snapshot(root)
-        custom = remote_code_files(root)
-        if custom:
-            raise RuntimeError(
-                f"{MODEL_ID}@{MODEL_REVISION} carries custom code {custom}; loading it needs the "
-                "trust_remote_code opt-in, which this package refuses (REMOTE_CODE_POLICY='refuse'). The "
-                "native transformers 4.57.6 Florence2ForConditionalGeneration does not match this "
-                "checkpoint's tensor layout (918 unused / 920 re-initialised tensors, 2026-09-12). Decision "
-                "pending with the repository owner: keep this pin with pinned remote code, or re-pin to the "
-                "native port."
-            )
-        raise RuntimeError("snapshot has no custom code but no native loader is wired; pin decision pending")
+        processor = Florence2Processor.from_pretrained(location, **common)
+        model, info = Florence2ForConditionalGeneration.from_pretrained(
+            location, dtype=dtype, output_loading_info=True, **common
+        )
+        bad = {k: v for k, v in info.items() if v}
+        if bad:
+            raise RuntimeError(f"checkpoint does not match the native Florence-2 architecture: {bad}")
+        model = model.eval().to(resolved_device)
+
+        def runner(image: Image.Image, prompt: str, task: str, max_new_tokens: int, num_beams: int) -> dict:
+            inputs = processor(text=prompt, images=image, return_tensors="pt").to(resolved_device, dtype)
+            with torch.inference_mode():
+                generated = model.generate(
+                    **inputs, max_new_tokens=max_new_tokens, num_beams=num_beams, do_sample=False
+                )
+            text = processor.batch_decode(generated, skip_special_tokens=False)[0]
+            parsed = processor.post_process_generation(text, task=task, image_size=image.size)
+            return {"text": text, "parsed": parsed[task]}
+
+        return cls(runner, resolved_device, source)
 
     def _validate(
         self, image: Any, task: str, text_input: str | None, max_new_tokens: int, num_beams: int

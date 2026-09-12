@@ -1,59 +1,61 @@
 # Florence-2 Vision-Language Pipeline
 
-DIMER inference wrapper for **`microsoft/Florence-2-large`** — prompt-driven captioning, OCR, object detection, dense region captioning and phrase grounding — pinned to an immutable Hugging Face revision and verified against a digest manifest before any load.
-
-**Status: Blocked — upstream pin decision.** The pinned snapshot can only be loaded by executing its bundled modeling code (`trust_remote_code`), which this package refuses; `from_pretrained` verifies the snapshot and then raises `RuntimeError`. See `STATUS.md` for the two options and `MODEL_CARD.md` for the measured evidence.
+DIMER inference wrapper for **`florence-community/Florence-2-large`** — the native-`transformers` conversion of Microsoft's Florence-2-large — for prompt-driven captioning, OCR, object detection, dense region captioning and phrase grounding, pinned to an immutable Hugging Face revision and loaded only from a digest-verified local snapshot with no remote code.
 
 ## Upstream alignment
 
-- Model: `microsoft/Florence-2-large`
-- Revision: `21a599d414c4d928c9032694c424fb94458e3594`
-- Upstream weight license: MIT
+- Model: `florence-community/Florence-2-large`
+- Revision: `4271c66b88cdbc05735372ec13b2360108de5317`
+- Upstream weight license: MIT (Microsoft; the community card links Microsoft's licence file)
 - Upstream task: image + task prompt → text / boxes (`<CAPTION>`, `<DETAILED_CAPTION>`, `<MORE_DETAILED_CAPTION>`, `<OD>`, `<DENSE_REGION_CAPTION>`, `<REGION_PROPOSAL>`, `<OCR>`, `<OCR_WITH_REGION>`, `<CAPTION_TO_PHRASE_GROUNDING>`)
-- Repository adaptation: **none**; inference contract only, no forward pass executed in v0.1.0
+- Repository adaptation: **none**; inference only, deterministic 3-beam decoding
 
 ## Quick start
 
 ```python
 from PIL import Image
-from florence2_vision_language_pipeline import Florence2Pipeline, TASKS, character_error_rate
+from florence2_vision_language_pipeline import Florence2Pipeline, character_error_rate
 
-pipe = Florence2Pipeline.from_pretrained(device="cpu")   # v0.1.0: verifies the snapshot, then raises RuntimeError
-result = pipe.run(Image.open("page.png"), "<OCR>")
-print(result["result"], result["generation"])
-print(character_error_rate("expected text", result["result"]))
+pipe = Florence2Pipeline.from_pretrained(device="cpu")     # cuda:0/float16 if available and device=None, else cpu/float32
+caption = pipe.run(Image.open("photo.jpg"), "<CAPTION>")
+boxes = pipe.run(Image.open("photo.jpg"), "<OD>")
+ocr = pipe.run(Image.open("page.png"), "<OCR>", max_new_tokens=1024)
+print(caption["result"], boxes["result"]["bboxes"], boxes["result"]["labels"])
+print(character_error_rate("expected text", ocr["result"]))
 ```
 
-The contract (`run`, validation, output fields) is exercised today only through an injected runner: `Florence2Pipeline(runner, "cpu")` where `runner(image, prompt, task, max_new_tokens, num_beams)` returns `{"text": ..., "parsed": ...}`.
+`result` is a string for caption/OCR tasks and `{"bboxes", "labels"}` in input-image pixel coordinates for region tasks; no confidence scores are emitted.
 
 ## Weights layout
 
 ```
-weights/florence-2-large/
+weights/florence-2-large-community/
   dimer-base-manifest.json   # modelId, revision, per-file bytes + sha256 (verified on every load)
-  config.json                # declares auto_map -> custom code (refused)
-  configuration_florence2.py / modeling_florence2.py / processing_florence2.py   # custom code, refused
-  preprocessor_config.json, generation_config.json, tokenizer.json, tokenizer_config.json, vocab.json, LICENSE, README.md
-  model.safetensors          # 1553563458 bytes, git-ignored
+  config.json                # Florence2ForConditionalGeneration, model_type florence2 (native classes)
+  preprocessor_config.json   # 768x768 resize, ImageNet mean/std, 577 image tokens
+  processor_config.json, generation_config.json, tokenizer.json, tokenizer_config.json, vocab.json, merges.txt,
+  added_tokens.json, special_tokens_map.json, README.md
+  model.safetensors          # 1553541016 bytes, git-ignored
 ```
 
-`from_pretrained()` calls `stage_missing_files()` then `verify_snapshot()` and refuses to continue if any file is missing or its SHA-256 differs from the manifest. With a verified snapshot it then detects the custom code (`remote_code_files()`) and raises `RuntimeError` naming the pending owner decision; `allow_download=True` without a manifest raises the same. To stage the snapshot: `hf download microsoft/Florence-2-large --revision 21a599d414c4d928c9032694c424fb94458e3594 --local-dir weights/florence-2-large`, then write the manifest.
+`from_pretrained()` calls `stage_missing_files()` then `verify_snapshot()` and refuses to load if any file is missing or its SHA-256 differs from the manifest; the snapshot is then loaded through the native `Florence2ForConditionalGeneration` / `Florence2Processor` classes with `local_files_only=True` and `trust_remote_code=False`, and the load is refused if any tensor is missing, unexpected or mismatched. Without a snapshot, `allow_download=True` loads from the Hub at `revision=4271c66b88cdbc05735372ec13b2360108de5317`; the default is to refuse. To stage the snapshot: `hf download florence-community/Florence-2-large --revision 4271c66b88cdbc05735372ec13b2360108de5317 --local-dir weights/florence-2-large-community`, then write the manifest.
 
 ## Tests and smoke
 
 ```
 pip install -e . --no-deps
-pytest -q -o addopts= tests      # offline, no weights needed; 16 tests incl. the remote-code refusal
-python -c "from florence2_vision_language_pipeline import *; print(len(verify_snapshot()['files']), remote_code_files())"
-# -> 12 ['configuration_florence2.py', 'modeling_florence2.py', 'processing_florence2.py', 'config.json:auto_map']
+pytest -q -o addopts= tests      # offline, no weights needed; 15 tests
+python -c "from PIL import Image, ImageDraw; from florence2_vision_language_pipeline import Florence2Pipeline; im = Image.new('RGB', (256, 256), 'white'); ImageDraw.Draw(im).rectangle([64, 64, 192, 192], fill='red'); p = Florence2Pipeline.from_pretrained(device='cpu'); print(p.run(im, '<CAPTION>')['result'], p.run(im, '<OD>')['result'])"
 ```
+
+Measured on CPU (float32, Windows venv, 2026-09-12): load 7.11 s; `<CAPTION>` 4.91 s → "a red square with a white background"; `<OD>` 9.02 s → one box `[63, 63, 193, 193]` labelled "flag".
 
 ## Documents
 
-- [`MODEL_CARD.md`](MODEL_CARD.md) — MODEL_CARD_SPEC 1.1 card, including the native-load investigation record
-- [`docs/WEIGHTS.md`](docs/WEIGHTS.md) — weight provenance and trust boundary
-- [`STATUS.md`](STATUS.md) — release status and the pin decision
+- [`MODEL_CARD.md`](MODEL_CARD.md) — MODEL_CARD_SPEC 1.1 card
+- [`docs/WEIGHTS.md`](docs/WEIGHTS.md) — weight provenance, trust boundary and pin history
+- [`STATUS.md`](STATUS.md) — release status
 
 ## Licensing
 
-Repository code is Apache-2.0 (see `LICENSE`). The upstream weights and bundled code are MIT; see `docs/WEIGHTS.md`.
+Repository code is Apache-2.0 (see `LICENSE`). The upstream weights are MIT; see `docs/WEIGHTS.md`.
