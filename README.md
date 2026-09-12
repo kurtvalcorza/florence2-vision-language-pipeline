@@ -50,6 +50,16 @@ python -c "from PIL import Image, ImageDraw; from florence2_vision_language_pipe
 
 Measured on CPU (float32, Windows venv, 2026-09-12): load 7.11 s; `<CAPTION>` 4.91 s → "a red square with a white background"; `<OD>` 9.02 s → one box `[63, 63, 193, 193]` labelled "flag".
 
+## Tutorial
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kurtvalcorza/florence2-vision-language-pipeline/blob/main/tutorials/florence2_vision_language_colab.ipynb)
+
+`tutorials/florence2_vision_language_colab.ipynb` is declared `MULTI-CAPABILITY` (see `tutorials/README.md`). Its default path draws a synthetic image (shapes plus the text `DIMER 2026`), surfaces the ceilings and the full `TASKS` list with per-task contracts, stages the missing weight file with `stage_missing_files(..., allow_download=True)` and digest-verifies it with `verify_snapshot`, runs `<CAPTION>`, `<OD>` and `<OCR>` through the public API with explicit deterministic generation settings, scores OCR against the drawn text with `character_error_rate` (sanity only), and exports the parsed results, a detection preview and provenance JSON. Captions and detections have no metric in this repository. BYOD is optional and gated off by default.
+
+## Release status
+
+**Candidate.** Static/unit checks do not constitute clean-runtime notebook evidence. Complete `docs/release-verification.md` against the exact release revision before calling the notebook release-grade.
+
 ## Documents
 
 - [`MODEL_CARD.md`](MODEL_CARD.md) — MODEL_CARD_SPEC 1.1 card
