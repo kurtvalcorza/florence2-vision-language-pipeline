@@ -19,7 +19,11 @@ base_model: florence-community/Florence-2-large
 
 ## Interactive Colab Tutorials
 
-This release ships no tutorial notebook (`tutorials/` is absent). The package is exercised through its test suite (`tests/`) and the run instructions in the README; a `NOTEBOOK_SPEC` 1.0 `TASK-INFERENCE` notebook is a follow-up, not a claim this card makes.
+This pipeline provides a ready-to-run interactive Google Colab notebook that exercises the repository's public API end to end — bootstrap a fresh runtime, stage and verify the pinned upstream revision, validate an input, run the task, and inspect and export the outputs:
+
+- **Multi-Capability Tutorial**:  
+  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/kurtvalcorza/florence2-vision-language-pipeline/blob/main/tutorials/florence2_vision_language_colab.ipynb) [`florence2_vision_language_colab.ipynb`](https://github.com/kurtvalcorza/florence2-vision-language-pipeline/blob/main/tutorials/florence2_vision_language_colab.ipynb)  
+  *Task-prompted inference with the pinned `florence-community/Florence-2-large` weights on one synthetic drawing: `<CAPTION>`, `<OD>` (boxes + labels, no scores) and `<OCR>` with deterministic 3-beam decoding; `character_error_rate` for OCR against the drawn text as sanity evidence only, no metric for captions or detections.*
 
 ---
 
