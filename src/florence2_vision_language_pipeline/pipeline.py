@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -135,6 +135,223 @@ def character_error_rate(reference: str, hypothesis: str) -> float:
     return previous[-1] / len(reference)
 
 
+INPUT_SCHEMA: dict[str, Any] = {
+    "input": (
+        "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks "
+        "in TASKS_WITH_TEXT additionally require a caption string as text_input"
+    ),
+    "image_side_px": [1, MAX_IMAGE_SIDE],
+    "tasks": list(TASKS),
+    "tasks_requiring_text_input": list(TASKS_WITH_TEXT),
+    "text_input_chars": [1, MAX_TEXT_CHARS],
+    "max_new_tokens": [1, MAX_NEW_TOKENS],
+    "num_beams": (
+        f"positive int; the snapshot's generation_config default is NUM_BEAMS={NUM_BEAMS} and decoding "
+        "is deterministic beam search (do_sample=False)"
+    ),
+    "preprocessing": (
+        "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet "
+        "mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped "
+        "back to input pixel coordinates. The prompt sent to the model is the task token followed by "
+        "text_input when the task takes one."
+    ),
+}
+
+# Which capability families have an intrinsic metric in this repository, and what the others need.
+_OCR_TASK = "<OCR>"
+_NEEDS: dict[str, str] = {
+    "caption": (
+        "reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or "
+        "human adequacy ratings; this repository ships neither the references nor a caption metric"
+    ),
+    "region": (
+        "annotated boxes for the same images and the caller's own matching/mean-average-precision code; "
+        "Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold"
+    ),
+    "ocr": (
+        "a known transcript for the image, passed as the reference, so character_error_rate can be "
+        "computed"
+    ),
+    "grounding": (
+        "annotated boxes for the phrases in the supplied caption and the caller's own matching code; no "
+        "grounding metric ships with this repository"
+    ),
+}
+_TASK_FAMILY: dict[str, str] = {
+    "<CAPTION>": "caption",
+    "<DETAILED_CAPTION>": "caption",
+    "<MORE_DETAILED_CAPTION>": "caption",
+    "<OD>": "region",
+    "<DENSE_REGION_CAPTION>": "region",
+    "<REGION_PROPOSAL>": "region",
+    "<OCR>": "ocr",
+    "<OCR_WITH_REGION>": "region",
+    "<CAPTION_TO_PHRASE_GROUNDING>": "grounding",
+}
+_SCORE_SEMANTICS = (
+    "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and "
+    "region tasks return boxes with labels and no per-box score, so there is nothing to threshold or "
+    "calibrate. Decoding is deterministic beam search, not a likelihood estimate."
+)
+
+
+def _check_inputs(
+    image: Any, task: Any, text_input: Any, max_new_tokens: Any, num_beams: Any
+) -> Image.Image:
+    """Raise TypeError/ValueError naming the first violated ceiling; return the RGB image.
+
+    ``Florence2Pipeline.run`` and ``validate_inputs`` both route through this function so their
+    acceptance criteria cannot diverge.
+    """
+    if not isinstance(image, Image.Image):
+        raise TypeError(f"image must be a PIL.Image.Image, got {type(image).__name__}")
+    width, height = image.size
+    if width < 1 or height < 1 or max(width, height) > MAX_IMAGE_SIDE:
+        raise ValueError(f"image side outside 1..MAX_IMAGE_SIDE={MAX_IMAGE_SIDE} px: {image.size}")
+    if task not in TASKS:
+        raise ValueError(f"task must be one of TASKS {TASKS}, got {task!r}")
+    if task in TASKS_WITH_TEXT:
+        if not isinstance(text_input, str) or not text_input.strip():
+            raise ValueError(f"task {task} requires a non-empty text_input")
+        if len(text_input) > MAX_TEXT_CHARS:
+            raise ValueError(f"text_input exceeds MAX_TEXT_CHARS={MAX_TEXT_CHARS}: {len(text_input)}")
+    elif text_input is not None:
+        raise ValueError(f"task {task} takes no text_input")
+    if isinstance(max_new_tokens, bool) or not isinstance(max_new_tokens, int):
+        raise TypeError("max_new_tokens must be an int")
+    if not 1 <= max_new_tokens <= MAX_NEW_TOKENS:
+        raise ValueError(f"max_new_tokens must be between 1 and MAX_NEW_TOKENS={MAX_NEW_TOKENS}")
+    if isinstance(num_beams, bool) or not isinstance(num_beams, int) or num_beams < 1:
+        raise TypeError("num_beams must be a positive int")
+    return image.convert("RGB")
+
+
+def validate_inputs(
+    image: Image.Image,
+    task: str = "<CAPTION>",
+    text_input: str | None = None,
+    *,
+    max_new_tokens: int = DEFAULT_MAX_NEW_TOKENS,
+    num_beams: int = NUM_BEAMS,
+    names: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    """Validation stage: return the input manifest (schema, observations, request, verdict).
+
+    Rejection is reported by raising exactly as ``run`` would; a caller that wants the finding
+    recorded catches the exception and stores ``str(exc)`` under ``findings``.
+    """
+    _check_inputs(image, task, text_input, max_new_tokens, num_beams)
+    if names is not None and len(names) != 1:
+        raise ValueError("names must have exactly one entry (run takes one image)")
+    return {
+        "schema": dict(INPUT_SCHEMA),
+        "inputs": [
+            {
+                "id": names[0] if names else "image-0",
+                "mode": image.mode,
+                "size": list(image.size),
+            }
+        ],
+        "task": task,
+        "task_requires_text_input": task in TASKS_WITH_TEXT,
+        "text_input": text_input,
+        "generation": {"max_new_tokens": max_new_tokens, "num_beams": num_beams, "do_sample": False},
+        "verdict": "accepted",
+        "findings": [],
+        "model_id": MODEL_ID,
+        "model_revision": MODEL_REVISION,
+    }
+
+
+def evaluation_report(
+    result: Mapping[str, Any] | Sequence[Mapping[str, Any]],
+    reference_text: str | None = None,
+    *,
+    sample_kind: str = "synthetic",
+) -> dict[str, Any]:
+    """Evaluation stage: a machine-readable report even when nothing is measurable.
+
+    ``result`` is one ``run`` result, or a sequence of them for a multi-capability run. The only
+    intrinsic metric in this repository is ``character_error_rate``, and it applies to ``<OCR>``
+    when a known transcript is supplied as ``reference_text``; every other capability is
+    ``not-measurable`` and the report says what labelled data would make it measurable.
+    """
+    if not isinstance(result, Mapping):
+        subreports = [
+            evaluation_report(item, reference_text, sample_kind=sample_kind) for item in result
+        ]
+        metrics = [
+            {**metric, "task": sub["task"]} for sub in subreports for metric in sub["metrics"]
+        ]
+        return {
+            "task": "multi-capability: " + ", ".join(sub["task"] for sub in subreports),
+            "score_semantics": _SCORE_SEMANTICS,
+            "sample_kind": sample_kind,
+            "n_capabilities": len(subreports),
+            "metrics": metrics,
+            "baselines": [],
+            "capabilities": subreports,
+            "verdict": "sample-sanity" if metrics else "not-measurable",
+            "reason": (
+                f"{len(metrics)} capability metric(s) over {len(subreports)} capabilities on one "
+                "tutorial sample; sanity evidence, not a benchmark"
+                if metrics
+                else f"none of the {len(subreports)} demonstrated capabilities has an intrinsic metric here"
+            ),
+            "needs": "; ".join(dict.fromkeys(sub["needs"] for sub in subreports)),
+            "model_id": MODEL_ID,
+            "model_revision": MODEL_REVISION,
+        }
+    task = result["task"]
+    base = {
+        "task": task,
+        "score_semantics": _SCORE_SEMANTICS,
+        "sample_kind": sample_kind,
+        "n_outputs": 1,
+        "generation": dict(result.get("generation") or {}),
+        "baselines": [],
+        "model_id": MODEL_ID,
+        "model_revision": MODEL_REVISION,
+    }
+    family = _TASK_FAMILY.get(task, "region")
+    if task == _OCR_TASK and isinstance(reference_text, str) and reference_text.strip():
+        reference = reference_text.strip()
+        hypothesis = str(result["result"]).strip()
+        return {
+            **base,
+            "metrics": [
+                {
+                    "id": "character_error_rate",
+                    "value": character_error_rate(reference, hypothesis),
+                    "reference": reference,
+                    "hypothesis": hypothesis,
+                    "estimation": "one image against a known transcript, no dispersion estimate",
+                }
+            ],
+            "verdict": "sample-sanity",
+            "reason": (
+                "one image scored against a transcript the caller already knows; on the synthetic "
+                "sample that transcript is text the notebook drew itself, so this is a code-path "
+                "check on a rendered font, not an OCR benchmark"
+            ),
+            "needs": (
+                "a labelled OCR corpus from the deployment domain for any generalisable "
+                "character-error-rate claim"
+            ),
+        }
+    return {
+        **base,
+        "metrics": [],
+        "verdict": "not-measurable",
+        "reason": (
+            f"no intrinsic metric exists in this repository for the {family} capability {task}"
+            if task != _OCR_TASK
+            else "no reference transcript was supplied for the evaluated image"
+        ),
+        "needs": _NEEDS[family],
+    }
+
+
 @dataclass
 class Florence2Pipeline:
     """``_runner(image, prompt, task, max_new_tokens, num_beams)`` -> ``{"text": raw, "parsed": value}``."""
@@ -192,26 +409,7 @@ class Florence2Pipeline:
     def _validate(
         self, image: Any, task: str, text_input: str | None, max_new_tokens: int, num_beams: int
     ) -> None:
-        if not isinstance(image, Image.Image):
-            raise TypeError(f"image must be a PIL.Image.Image, got {type(image).__name__}")
-        width, height = image.size
-        if width < 1 or height < 1 or max(width, height) > MAX_IMAGE_SIDE:
-            raise ValueError(f"image side outside 1..MAX_IMAGE_SIDE={MAX_IMAGE_SIDE} px: {image.size}")
-        if task not in TASKS:
-            raise ValueError(f"task must be one of TASKS {TASKS}, got {task!r}")
-        if task in TASKS_WITH_TEXT:
-            if not isinstance(text_input, str) or not text_input.strip():
-                raise ValueError(f"task {task} requires a non-empty text_input")
-            if len(text_input) > MAX_TEXT_CHARS:
-                raise ValueError(f"text_input exceeds MAX_TEXT_CHARS={MAX_TEXT_CHARS}: {len(text_input)}")
-        elif text_input is not None:
-            raise ValueError(f"task {task} takes no text_input")
-        if isinstance(max_new_tokens, bool) or not isinstance(max_new_tokens, int):
-            raise TypeError("max_new_tokens must be an int")
-        if not 1 <= max_new_tokens <= MAX_NEW_TOKENS:
-            raise ValueError(f"max_new_tokens must be between 1 and MAX_NEW_TOKENS={MAX_NEW_TOKENS}")
-        if isinstance(num_beams, bool) or not isinstance(num_beams, int) or num_beams < 1:
-            raise TypeError("num_beams must be a positive int")
+        _check_inputs(image, task, text_input, max_new_tokens, num_beams)
 
     def run(
         self,

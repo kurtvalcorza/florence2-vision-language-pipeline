@@ -1,6 +1,7 @@
 from .pipeline import (
     DEFAULT_MAX_NEW_TOKENS,
     DEFAULT_WEIGHTS_DIR,
+    INPUT_SCHEMA,
     MAX_IMAGE_SIDE,
     MAX_NEW_TOKENS,
     MAX_TEXT_CHARS,
@@ -14,13 +15,16 @@ from .pipeline import (
     TASKS_WITHOUT_TEXT,
     Florence2Pipeline,
     character_error_rate,
+    evaluation_report,
     stage_missing_files,
+    validate_inputs,
     verify_snapshot,
 )
 
 __all__ = [
     "DEFAULT_MAX_NEW_TOKENS",
     "DEFAULT_WEIGHTS_DIR",
+    "INPUT_SCHEMA",
     "MAX_IMAGE_SIDE",
     "MAX_NEW_TOKENS",
     "MAX_TEXT_CHARS",
@@ -34,6 +38,8 @@ __all__ = [
     "TASKS_WITHOUT_TEXT",
     "Florence2Pipeline",
     "character_error_rate",
+    "evaluation_report",
     "stage_missing_files",
+    "validate_inputs",
     "verify_snapshot",
 ]
