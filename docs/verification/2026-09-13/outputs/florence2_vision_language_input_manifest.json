@@ -1,0 +1,234 @@
+{
+  "schema": {
+    "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+    "image_side_px": [
+      1,
+      4096
+    ],
+    "tasks": [
+      "<CAPTION>",
+      "<DETAILED_CAPTION>",
+      "<MORE_DETAILED_CAPTION>",
+      "<OD>",
+      "<DENSE_REGION_CAPTION>",
+      "<REGION_PROPOSAL>",
+      "<OCR>",
+      "<OCR_WITH_REGION>",
+      "<CAPTION_TO_PHRASE_GROUNDING>"
+    ],
+    "tasks_requiring_text_input": [
+      "<CAPTION_TO_PHRASE_GROUNDING>"
+    ],
+    "text_input_chars": [
+      1,
+      1000
+    ],
+    "max_new_tokens": [
+      1,
+      1024
+    ],
+    "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+    "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+  },
+  "inputs": [
+    {
+      "id": "synthetic_shapes_text_512",
+      "mode": "RGB",
+      "size": [
+        512,
+        512
+      ]
+    }
+  ],
+  "task": "multi-capability: <CAPTION>, <OD>, <OCR>",
+  "task_requires_text_input": false,
+  "text_input": null,
+  "generation": {
+    "max_new_tokens": 64,
+    "num_beams": 3,
+    "do_sample": false
+  },
+  "verdict": "accepted",
+  "findings": [
+    {
+      "input": "unsupported-task-probe",
+      "task": "<REFERRING_EXPRESSION_SEGMENTATION>",
+      "verdict": "rejected",
+      "message": "task must be one of TASKS ('<CAPTION>', '<DETAILED_CAPTION>', '<MORE_DETAILED_CAPTION>', '<OD>', '<DENSE_REGION_CAPTION>', '<REGION_PROPOSAL>', '<OCR>', '<OCR_WITH_REGION>', '<CAPTION_TO_PHRASE_GROUNDING>'), got '<REFERRING_EXPRESSION_SEGMENTATION>'"
+    }
+  ],
+  "model_id": "florence-community/Florence-2-large",
+  "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+  "tasks": [
+    "<CAPTION>",
+    "<OD>",
+    "<OCR>"
+  ],
+  "capabilities": {
+    "<CAPTION>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<CAPTION>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 64,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    },
+    "<OD>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<OD>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 256,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    },
+    "<OCR>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<OCR>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 128,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    }
+  }
+}

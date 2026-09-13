@@ -1,0 +1,99 @@
+{
+  "repository": "florence2-vision-language-pipeline",
+  "commit": "ece9e7f72e5915c7e84208415c0e803955e1b774",
+  "notebook": "florence2_vision_language_colab.ipynb",
+  "git_blob": "e807053d55c0849b2436ff85bfc0e8c194f1eca4",
+  "sha256": "4f2058c965b8900efd02ed9b5ffee0e00e76e9cfb6f3d4a62c47a2c0b47a8d60",
+  "status_before": [],
+  "gpu": "Tesla T4, 15360 MiB, 580.82.07",
+  "status": "passed",
+  "hf_cache_clean_before": true,
+  "weights_clean_before": true,
+  "executor": "Colab CLI -> isolated Python 3.12 -> unchanged code cells",
+  "python": "3.12.3",
+  "exit_code": 0,
+  "execution_summary": {
+    "input_sha256": "4f2058c965b8900efd02ed9b5ffee0e00e76e9cfb6f3d4a62c47a2c0b47a8d60",
+    "cells": [
+      {
+        "index": 3,
+        "seconds": 119.839,
+        "error": null
+      },
+      {
+        "index": 5,
+        "seconds": 0.008,
+        "error": null
+      },
+      {
+        "index": 7,
+        "seconds": 34.865,
+        "error": null
+      },
+      {
+        "index": 9,
+        "seconds": 0.04,
+        "error": null
+      },
+      {
+        "index": 11,
+        "seconds": 0.003,
+        "error": null
+      },
+      {
+        "index": 13,
+        "seconds": 4.445,
+        "error": null
+      },
+      {
+        "index": 15,
+        "seconds": 0.001,
+        "error": null
+      },
+      {
+        "index": 17,
+        "seconds": 0.057,
+        "error": null
+      }
+    ],
+    "status": "passed",
+    "source_cells_unchanged": true
+  },
+  "seconds": 163.882,
+  "verification_checks": {
+    "original_sha256_matches_baseline": true,
+    "remote_input_sha256_matches_baseline": true,
+    "python_matches_supported_3_12": true,
+    "source_cells_unchanged": true,
+    "all_code_cells_executed_without_errors": true,
+    "inference_device_is_cuda": true,
+    "exported_source_revision_matches_notebook": true,
+    "input_manifest_accepted": true,
+    "negative_validation_probe_recorded": true,
+    "all_notebook_sanity_checks_pass": true,
+    "all_inline_pins_match_installed_versions": true
+  },
+  "verified_status": "PASS",
+  "execution_date_utc": "2026-09-13",
+  "cell_wall_seconds": 159.258,
+  "total_wall_seconds_including_environment_setup": 163.882,
+  "runtime": {
+    "python": "3.12.3",
+    "torch": "2.14.0+cu130",
+    "transformers": "4.57.6",
+    "pillow": "11.3.0",
+    "device": "cuda:0",
+    "source": "local-snapshot",
+    "dtype": "float16"
+  },
+  "model_id": "florence-community/Florence-2-large",
+  "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+  "executor_source_sha256": "21c82435e1559a24e391bca9afa0743269602578a525068eda273dc9e4bd02bc",
+  "cleanup": {
+    "stop_output": "[colab] Stopping session 'dimer-gpu-clean312-0913'...\n[colab] Session terminated.\n",
+    "sessions_after_output": "[colab] No active sessions found on server.\n"
+  },
+  "scope": "unchanged default sample code cells; GPU inference and contract checks",
+  "release_status": "Candidate; evidence review pending",
+  "native_hosted_notebook_run": "Aborted in install cell after Python 3.13 mismatch was confirmed; not a completed runtime result"
+}

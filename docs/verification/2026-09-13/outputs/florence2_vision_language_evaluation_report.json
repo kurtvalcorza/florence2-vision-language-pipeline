@@ -1,0 +1,86 @@
+{
+  "task": "multi-capability: <CAPTION>, <OD>, <OCR>",
+  "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+  "sample_kind": "synthetic (drawn in this cell)",
+  "n_capabilities": 3,
+  "metrics": [
+    {
+      "id": "character_error_rate",
+      "value": 0.0,
+      "reference": "DIMER 2026",
+      "hypothesis": "DIMER 2026",
+      "estimation": "one image against a known transcript, no dispersion estimate",
+      "task": "<OCR>"
+    }
+  ],
+  "baselines": [],
+  "capabilities": [
+    {
+      "task": "<CAPTION>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 64,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [],
+      "verdict": "not-measurable",
+      "reason": "no intrinsic metric exists in this repository for the caption capability <CAPTION>",
+      "needs": "reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or human adequacy ratings; this repository ships neither the references nor a caption metric"
+    },
+    {
+      "task": "<OD>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 256,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [],
+      "verdict": "not-measurable",
+      "reason": "no intrinsic metric exists in this repository for the region capability <OD>",
+      "needs": "annotated boxes for the same images and the caller's own matching/mean-average-precision code; Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold"
+    },
+    {
+      "task": "<OCR>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 128,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [
+        {
+          "id": "character_error_rate",
+          "value": 0.0,
+          "reference": "DIMER 2026",
+          "hypothesis": "DIMER 2026",
+          "estimation": "one image against a known transcript, no dispersion estimate"
+        }
+      ],
+      "verdict": "sample-sanity",
+      "reason": "one image scored against a transcript the caller already knows; on the synthetic sample that transcript is text the notebook drew itself, so this is a code-path check on a rendered font, not an OCR benchmark",
+      "needs": "a labelled OCR corpus from the deployment domain for any generalisable character-error-rate claim"
+    }
+  ],
+  "verdict": "sample-sanity",
+  "reason": "1 capability metric(s) over 3 capabilities on one tutorial sample; sanity evidence, not a benchmark",
+  "needs": "reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or human adequacy ratings; this repository ships neither the references nor a caption metric; annotated boxes for the same images and the caller's own matching/mean-average-precision code; Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold; a labelled OCR corpus from the deployment domain for any generalisable character-error-rate claim",
+  "model_id": "florence-community/Florence-2-large",
+  "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+}
