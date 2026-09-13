@@ -31,3 +31,5 @@ and regenerate (`python tools/build_notebook.py`; `--check` is enforced by the v
   clean-runtime execution requirement; a release review must confirm that a recorded clean run in
   `docs/release-verification.md` matches the notebook revision under review before the status is
   promoted to `Release-grade`.
+
+Current source update: snapshot validation now runs before model-library imports (Kokoro also validates the language first), so rejected requests fail with the intended validation error even when model libraries are absent. The standalone notebook was regenerated from this source. The retained 2026-09-13 GPU run identifies the earlier notebook blob; the regenerated notebook has not had a fresh GPU execution. Status remains **Candidate**.

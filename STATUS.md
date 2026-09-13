@@ -1,3 +1,5 @@
 # Release status
 
 Current status: **Candidate** — clean GPU execution recorded; evidence review pending. The standalone `MULTI-CAPABILITY` tutorial `tutorials/florence2_vision_language_colab.ipynb` passed 8/8 unchanged code cells on a Colab Tesla T4 with Python 3.12.3 on 2026-09-13. See [the release-verification record](docs/release-verification.md) and [retained artifacts](docs/verification/2026-09-13/README.md) for the exact tested source commit and notebook blob, runtime pins, default sample outputs and cleanup confirmation. Static validation and generator parity remain source checks; the GPU run is inference/contract evidence. This documentation update performs no release promotion.
+
+Current source update: snapshot validation now runs before model-library imports (Kokoro also validates the language first), so rejected requests fail with the intended validation error even when model libraries are absent. The standalone notebook was regenerated from this source. The retained 2026-09-13 GPU run identifies the earlier notebook blob; the regenerated notebook has not had a fresh GPU execution. Status remains **Candidate**.
