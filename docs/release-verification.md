@@ -1,10 +1,6 @@
 # Release verification
 
-`tutorials/florence2_vision_language_colab.ipynb` (`MULTI-CAPABILITY`, **standalone** carrier) is a **release candidate** until the exact notebook
-revision has executed top-to-bottom in a clean supported runtime. Unit tests, JSON validation,
-code-cell compilation, the generator parity checks and `tools/validate_release_assets.py` are
-necessary checks but are **not** runtime evidence under DIMER Notebook Specification 1.1. This file is the durable release-gate record for
-the notebook.
+`tutorials/florence2_vision_language_colab.ipynb` (`MULTI-CAPABILITY`, **standalone** carrier) remains a **release candidate**. A clean Python 3.12 GPU execution of the exact notebook blob was recorded on 2026-09-13; the result and retained artifacts are below. Static checks are not runtime evidence, and promotion still requires a reviewer to accept the recorded run.
 
 ## Automatic coverage (static, every pull request)
 
@@ -78,7 +74,7 @@ Before changing the registry status from `Candidate` to `Release-grade`:
      import of the repository package;
    - synthetic 512 x 512 drawing (red square, blue circle, the text `DIMER 2026`) generated in code with its pixel SHA-256 printed;
    - ceilings `MAX_IMAGE_SIDE = 4096`, `MAX_NEW_TOKENS = 1024`, `DEFAULT_MAX_NEW_TOKENS = 256`, `MAX_TEXT_CHARS = 1000`, `NUM_BEAMS = 3`, the `TASKS` split and the three capability contracts printed, and `validate_inputs` writing `outputs/florence2_vision_language_input_manifest.json` with verdict `accepted`, one per-capability sub-manifest, and one recorded rejection finding from the unsupported-task probe;
-   - `stage_missing_files(..., allow_download=True)` reporting `['model.safetensors']` fetched from `florence-community/Florence-2-large` at the immutable revision, `verify_snapshot` reporting 12 files, and `Florence2Pipeline.from_pretrained` reporting `source: local-snapshot` (loading info clean);
+   - `stage_missing_files(..., allow_download=True)` reporting all 12 manifest entries fetched into an empty standalone weights directory from `florence-community/Florence-2-large` at the immutable revision, `verify_snapshot` reporting 12 files, and `Florence2Pipeline.from_pretrained` reporting `source: local-snapshot` (loading info clean);
    - `run` completing for `<CAPTION>`, `<OD>` and `<OCR>` with `do_sample: False` and `num_beams: 3` in every `generation` block and all five structural checks true;
    - `evaluation_report` writing `outputs/florence2_vision_language_evaluation_report.json` with the combined verdict `sample-sanity`, exactly one `character_error_rate` metric tagged `<OCR>` scored against `DIMER 2026`, and `not-measurable` sub-reports for `<CAPTION>` and `<OD>` naming what each would need;
    - the detection preview rendered;
@@ -96,30 +92,24 @@ A known-failing default path in the supported runtime blocks release.
 
 | Notebook | Commit / notebook blob | Date (UTC) | Executor | Outcome |
 |---|---|---|---|---|
-| `tutorials/florence2_vision_language_colab.ipynb` | | | | pending — queued to the GPU lane |
+| `tutorials/florence2_vision_language_colab.ipynb` | `ece9e7f72e5915c7e84208415c0e803955e1b774` / `e807053d55c0849b2436ff85bfc0e8c194f1eca4` | 2026-09-13 | Colab CLI → isolated Python 3.12.3, T4 | PASS — 8/8 cells; evidence review pending; [Retained run](verification/2026-09-13/README.md) |
 
 ## Recorded executions
 
-Notebook identity is the Git blob id of `tutorials/florence2_vision_language_colab.ipynb` (verify with
-`git rev-parse <commit>:tutorials/florence2_vision_language_colab.ipynb`). Wall times are the sum of per-cell times reported by
-the executor and include installs and the model download; they are measurements for the stated
-runtime, not general estimates.
+Notebook identity is the Git blob of `tutorials/florence2_vision_language_colab.ipynb` at the source commit in the row below. The documentation commit recording the run does not change that notebook blob. Cell wall time is the sum of recorded code-cell times, including installation and model downloads; total time additionally includes environment setup and bookkeeping. These measurements describe this one run.
 
-No execution of the notebook has been recorded. The only runtime measurements that exist for this repository are the pipeline smoke run documented in `MODEL_CARD.md` (CPU float32, load 7.11 s, `<CAPTION>` 4.91 s and `<OD>` 9.02 s on a 256 x 256 drawing of a red square, labelled `flag`). That run exercised the
-package, not this notebook, and is not notebook execution evidence.
+### Manual clean-runtime evidence
 
-| Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
+| Date (UTC) | Commit / notebook blob | Executor | Path exercised | Cell wall / total | Outcome |
 |---|---|---|---|---|---|
-| — | — | — | Default sample path | — | pending — queued to the GPU lane |
+| 2026-09-13 | `ece9e7f72e5915c7e84208415c0e803955e1b774` / `e807053d55c0849b2436ff85bfc0e8c194f1eca4` | Colab CLI → fresh Python 3.12.3 venv/interpreter; Tesla T4, 15,360 MiB | Unchanged default sample, no repository checkout, empty per-model cache and weights | 159.258 s / 163.882 s | PASS — 8/8 cells; evidence review pending; [Retained run](verification/2026-09-13/README.md) |
+
+The run used PyTorch `2.14.0+cu130`, `cuda:0` and `float16`. All eight code cells completed, runtime pins matched, every snapshot file was SHA-256 verified, inputs were accepted, and the negative validation probe was recorded. Results, model identity/revision, observed output, warnings, package versions, notebook outputs, executor source and cleanup evidence are retained in [the run record](verification/2026-09-13/README.md).
+
+The native hosted kernel was Python 3.13.15; its direct notebook attempt was aborted in installation after the Python-version mismatch was confirmed. The successful result above uses the repository-supported Python 3.12 interpreter on the Colab GPU. No completed native hosted-kernel run is claimed.
 
 ## Current status
 
-The notebook source is complete and passes the static checks above, including the generator parity
-checks (`--check` OK); **no clean-runtime execution has been recorded**, so the registry status is **Candidate** and the manual-evidence row is pending.
-Promotion requires a reviewer to confirm a recorded run against the notebook blob under review and
-an integrator to promote it; promotion is not performed by the builder. The commit that adds a
-recorded-execution row changes documentation only; the executed source is the commit named in the
-row. One fact a reviewer should weigh: **the standalone carrier itself — executing the carried
-module cell in a runtime that has no repository checkout — has been validated statically only
-(parity PASS) and never run**, so the clean run will be the first execution of the standalone path
-and of the real `hf_hub_download` staging path.
+Clean GPU execution evidence is now recorded for the exact notebook blob above. The registry status remains **Candidate** pending a reviewer’s acceptance of the evidence and an integrator’s promotion. This documentation change performs no promotion. The run is default-sample inference/contract evidence; it does not establish model quality or a benchmark result. CPU and BYOD paths were not exercised by this GPU run.
+
+Current source update: snapshot validation now runs before model-library imports (Kokoro also validates the language first), so rejected requests fail with the intended validation error even when model libraries are absent. The standalone notebook was regenerated from this source. The retained 2026-09-13 GPU run identifies the earlier notebook blob; the regenerated notebook has not had a fresh GPU execution. Status remains **Candidate**.

@@ -1,0 +1,356 @@
+CELL_START 3
+{'notebook_source': {'repository': 'florence2-vision-language-pipeline', 'repository_revision': 'a5a7c2a73f65acfc053bc3ee73ecefa8c40fa32b', 'embedded_module': 'src/florence2_vision_language_pipeline/pipeline.py', 'embedded_modules': ['src/florence2_vision_language_pipeline/pipeline.py'], 'module_sha256': '20978896bd4490e875e309c14d30c6535dc69fdea86054cb4ae762fb331c2a5b', 'generator': 'build_notebook.py/2', 'notebook_spec': '1.1'}, 'python': '3.12.3', 'torch': '2.14.0+cu130', 'transformers': '4.57.6', 'PIL': '11.3.0', 'cuda': True}
+CELL_FINISH 3 seconds=119.839 error=False
+CELL_START 5
+CELL_FINISH 5 seconds=0.008 error=False
+CELL_START 7
+{'model_id': 'florence-community/Florence-2-large', 'revision': '4271c66b88cdbc05735372ec13b2360108de5317', 'license': 'mit', 'files': 12, 'total_bytes': 1558929750}
+{'weights_dir': '/content/dimer-clean-gpu-tests/florence2-vision-language-pipeline/weights/florence-2-large-community', 'fetched': ['README.md', 'added_tokens.json', 'config.json', 'generation_config.json', 'merges.txt', 'model.safetensors', 'preprocessor_config.json', 'processor_config.json', 'special_tokens_map.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json']}
+{'verified_files': 12, 'revision': '4271c66b88cdbc05735372ec13b2360108de5317'}
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+{'device': 'cuda:0', 'source': 'local-snapshot'}
+CELL_FINISH 7 seconds=34.865 error=False
+CELL_START 9
+{'sample': 'synthetic_shapes_text_512', 'sample_kind': 'synthetic (drawn in this cell)', 'mode': 'RGB', 'size': (512, 512), 'ocr_reference': 'DIMER 2026', 'drawn_square': (64, 64, 224, 224), 'pixel_sha256': '950f2e0f69919f36a463816484f8ce2b350688361bdd301dc73a51e15ca8950c'}
+CELL_FINISH 9 seconds=0.04 error=False
+CELL_START 11
+{'ceilings': {'MAX_IMAGE_SIDE': 4096, 'MAX_NEW_TOKENS': 1024, 'DEFAULT_MAX_NEW_TOKENS': 256, 'MAX_TEXT_CHARS': 1000, 'NUM_BEAMS': 3}}
+{'TASKS_WITHOUT_TEXT': ('<CAPTION>', '<DETAILED_CAPTION>', '<MORE_DETAILED_CAPTION>', '<OD>', '<DENSE_REGION_CAPTION>', '<REGION_PROPOSAL>', '<OCR>', '<OCR_WITH_REGION>'), 'TASKS_WITH_TEXT': ('<CAPTION_TO_PHRASE_GROUNDING>',)}
+<CAPTION> {'input': 'image only', 'output': 'result: str (one short caption); no score', 'max_new_tokens': 64}
+<OD> {'input': 'image only', 'output': "result: {'bboxes': [[x1, y1, x2, y2], ...] in input pixels, 'labels': [str, ...]}; no per-box score", 'max_new_tokens': 256}
+<OCR> {'input': 'image only', 'output': 'result: str (transcribed text, reading order chosen by the model); no score', 'max_new_tokens': 128}
+{
+  "schema": {
+    "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+    "image_side_px": [
+      1,
+      4096
+    ],
+    "tasks": [
+      "<CAPTION>",
+      "<DETAILED_CAPTION>",
+      "<MORE_DETAILED_CAPTION>",
+      "<OD>",
+      "<DENSE_REGION_CAPTION>",
+      "<REGION_PROPOSAL>",
+      "<OCR>",
+      "<OCR_WITH_REGION>",
+      "<CAPTION_TO_PHRASE_GROUNDING>"
+    ],
+    "tasks_requiring_text_input": [
+      "<CAPTION_TO_PHRASE_GROUNDING>"
+    ],
+    "text_input_chars": [
+      1,
+      1000
+    ],
+    "max_new_tokens": [
+      1,
+      1024
+    ],
+    "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+    "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+  },
+  "inputs": [
+    {
+      "id": "synthetic_shapes_text_512",
+      "mode": "RGB",
+      "size": [
+        512,
+        512
+      ]
+    }
+  ],
+  "task": "multi-capability: <CAPTION>, <OD>, <OCR>",
+  "task_requires_text_input": false,
+  "text_input": null,
+  "generation": {
+    "max_new_tokens": 64,
+    "num_beams": 3,
+    "do_sample": false
+  },
+  "verdict": "accepted",
+  "findings": [
+    {
+      "input": "unsupported-task-probe",
+      "task": "<REFERRING_EXPRESSION_SEGMENTATION>",
+      "verdict": "rejected",
+      "message": "task must be one of TASKS ('<CAPTION>', '<DETAILED_CAPTION>', '<MORE_DETAILED_CAPTION>', '<OD>', '<DENSE_REGION_CAPTION>', '<REGION_PROPOSAL>', '<OCR>', '<OCR_WITH_REGION>', '<CAPTION_TO_PHRASE_GROUNDING>'), got '<REFERRING_EXPRESSION_SEGMENTATION>'"
+    }
+  ],
+  "model_id": "florence-community/Florence-2-large",
+  "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+  "tasks": [
+    "<CAPTION>",
+    "<OD>",
+    "<OCR>"
+  ],
+  "capabilities": {
+    "<CAPTION>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<CAPTION>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 64,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    },
+    "<OD>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<OD>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 256,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    },
+    "<OCR>": {
+      "schema": {
+        "input": "one PIL.Image.Image (any mode, converted to RGB) plus one task prompt from TASKS; the tasks in TASKS_WITH_TEXT additionally require a caption string as text_input",
+        "image_side_px": [
+          1,
+          4096
+        ],
+        "tasks": [
+          "<CAPTION>",
+          "<DETAILED_CAPTION>",
+          "<MORE_DETAILED_CAPTION>",
+          "<OD>",
+          "<DENSE_REGION_CAPTION>",
+          "<REGION_PROPOSAL>",
+          "<OCR>",
+          "<OCR_WITH_REGION>",
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "tasks_requiring_text_input": [
+          "<CAPTION_TO_PHRASE_GROUNDING>"
+        ],
+        "text_input_chars": [
+          1,
+          1000
+        ],
+        "max_new_tokens": [
+          1,
+          1024
+        ],
+        "num_beams": "positive int; the snapshot's generation_config default is NUM_BEAMS=3 and decoding is deterministic beam search (do_sample=False)",
+        "preprocessing": "image converted to RGB; the processor resizes it to exactly 768x768 (bicubic, ImageNet mean/std), so aspect ratio is not preserved and nothing is cropped; region outputs are mapped back to input pixel coordinates. The prompt sent to the model is the task token followed by text_input when the task takes one."
+      },
+      "inputs": [
+        {
+          "id": "synthetic_shapes_text_512",
+          "mode": "RGB",
+          "size": [
+            512,
+            512
+          ]
+        }
+      ],
+      "task": "<OCR>",
+      "task_requires_text_input": false,
+      "text_input": null,
+      "generation": {
+        "max_new_tokens": 128,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "verdict": "accepted",
+      "findings": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+    }
+  }
+}
+CELL_FINISH 11 seconds=0.003 error=False
+CELL_START 13
+{'task': '<CAPTION>', 'seconds': 3.764, 'generation': {'max_new_tokens': 64, 'num_beams': 3, 'do_sample': False}, 'result': 'a red and blue circle with the word dimer 2026 on it'}
+{'task': '<OD>', 'seconds': 0.371, 'generation': {'max_new_tokens': 256, 'num_beams': 3, 'do_sample': False}, 'result': {'bboxes': [[0, 0, 511, 511]], 'labels': ['poster']}}
+{'task': '<OCR>', 'seconds': 0.31, 'generation': {'max_new_tokens': 128, 'num_beams': 3, 'do_sample': False}, 'result': 'DIMER 2026'}
+{'checks': {'caption_is_text': True, 'od_boxes_and_labels_aligned': True, 'od_boxes_inside_image': True, 'ocr_is_text': True, 'deterministic_settings': True}}
+CELL_FINISH 13 seconds=4.445 error=False
+CELL_START 15
+{
+  "task": "multi-capability: <CAPTION>, <OD>, <OCR>",
+  "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+  "sample_kind": "synthetic (drawn in this cell)",
+  "n_capabilities": 3,
+  "metrics": [
+    {
+      "id": "character_error_rate",
+      "value": 0.0,
+      "reference": "DIMER 2026",
+      "hypothesis": "DIMER 2026",
+      "estimation": "one image against a known transcript, no dispersion estimate",
+      "task": "<OCR>"
+    }
+  ],
+  "baselines": [],
+  "capabilities": [
+    {
+      "task": "<CAPTION>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 64,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [],
+      "verdict": "not-measurable",
+      "reason": "no intrinsic metric exists in this repository for the caption capability <CAPTION>",
+      "needs": "reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or human adequacy ratings; this repository ships neither the references nor a caption metric"
+    },
+    {
+      "task": "<OD>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 256,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [],
+      "verdict": "not-measurable",
+      "reason": "no intrinsic metric exists in this repository for the region capability <OD>",
+      "needs": "annotated boxes for the same images and the caller's own matching/mean-average-precision code; Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold"
+    },
+    {
+      "task": "<OCR>",
+      "score_semantics": "Florence-2 emits no probability or confidence: captions and OCR are plain generated text, and region tasks return boxes with labels and no per-box score, so there is nothing to threshold or calibrate. Decoding is deterministic beam search, not a likelihood estimate.",
+      "sample_kind": "synthetic (drawn in this cell)",
+      "n_outputs": 1,
+      "generation": {
+        "max_new_tokens": 128,
+        "num_beams": 3,
+        "do_sample": false
+      },
+      "baselines": [],
+      "model_id": "florence-community/Florence-2-large",
+      "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317",
+      "metrics": [
+        {
+          "id": "character_error_rate",
+          "value": 0.0,
+          "reference": "DIMER 2026",
+          "hypothesis": "DIMER 2026",
+          "estimation": "one image against a known transcript, no dispersion estimate"
+        }
+      ],
+      "verdict": "sample-sanity",
+      "reason": "one image scored against a transcript the caller already knows; on the synthetic sample that transcript is text the notebook drew itself, so this is a code-path check on a rendered font, not an OCR benchmark",
+      "needs": "a labelled OCR corpus from the deployment domain for any generalisable character-error-rate claim"
+    }
+  ],
+  "verdict": "sample-sanity",
+  "reason": "1 capability metric(s) over 3 capabilities on one tutorial sample; sanity evidence, not a benchmark",
+  "needs": "reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or human adequacy ratings; this repository ships neither the references nor a caption metric; annotated boxes for the same images and the caller's own matching/mean-average-precision code; Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold; a labelled OCR corpus from the deployment domain for any generalisable character-error-rate claim",
+  "model_id": "florence-community/Florence-2-large",
+  "model_revision": "4271c66b88cdbc05735372ec13b2360108de5317"
+}
+{'task': '<CAPTION>', 'verdict': 'not-measurable', 'needs': 'reference captions for the same images plus a caption metric (for example CIDEr or SPICE), or human adequacy ratings; this repository ships neither the references nor a caption metric'}
+{'task': '<OD>', 'verdict': 'not-measurable', 'needs': "annotated boxes for the same images and the caller's own matching/mean-average-precision code; Florence-2 emits no per-box score, so there is also nothing to calibrate or threshold"}
+CELL_FINISH 15 seconds=0.001 error=False
+CELL_START 17
+['florence2_vision_language_evaluation_report.json', 'florence2_vision_language_input_manifest.json', 'florence2_vision_language_preview.png', 'florence2_vision_language_result.json']
+CELL_FINISH 17 seconds=0.057 error=False
+CLEAN_EXECUTION_RESULT passed
