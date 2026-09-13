@@ -3,6 +3,8 @@ license: mit
 model_card_spec: "1.1"
 pipeline_tag: image-text-to-text
 base_model: florence-community/Florence-2-large
+date_published: "2024-06-15"
+date_published_source: "microsoft/Florence-2-large Hub repository creation (`initial commit` 2024-06-15); the florence-community port carrying the same weights was created 2025-09-11"
 ---
 
 # Florence-2-large (DIMER package v0.1.0) — Prompt-driven Vision-Language Model (Caption, OCR, Detection, Grounding)
@@ -10,7 +12,6 @@ base_model: florence-community/Florence-2-large
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-florence--community%2FFlorence--2--large-ffcc4d?style=flat)](https://huggingface.co/florence-community/Florence-2-large)
 [![arXiv Paper](https://img.shields.io/badge/arXiv-2311.06242-b31b1b.svg)](https://arxiv.org/abs/2311.06242)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://huggingface.co/microsoft/Florence-2-large/resolve/main/LICENSE)
-[![Pipeline](https://img.shields.io/badge/Pipeline-florence2--vision--language--pipeline-2ea44f?style=flat&logo=github)](https://github.com/kurtvalcorza/florence2-vision-language-pipeline)
 
 > [!WARNING]
 > ⚠️ **Provided for research, training, and evaluation purposes only.** Model weights are redistributed unmodified under their upstream license, which controls your use, including any commercial use or redistribution; the accompanying code and notebooks are released under this repository's license. All of it is supplied **"as is"**, without warranty of any kind, and has not been validated for production, clinical, or safety-critical use. Running the notebooks downloads third-party weights and datasets governed by their own licenses and consumes compute on your own Colab/Kaggle account. To the maximum extent permitted by law, the maintainers of this repository and the DIMER platform accept no liability for any damages arising from their use. Hosting implies no affiliation with or endorsement by the original authors.
@@ -27,7 +28,7 @@ This pipeline provides a ready-to-run interactive Google Colab notebook that exe
 
 ---
 
-###### Description
+#### Description
 
 `florence-community/Florence-2-large` is the "official transformers converted checkpoint" (pinned README note) of Microsoft's 0.77 B-parameter Florence-2-large (Xiao et al., arXiv:2311.06242), pinned here to revision `4271c66b88cdbc05735372ec13b2360108de5317`; the README carries over Microsoft's statement that this is a continued-pretrained variant with a 4k context length, trained on a further 0.1 B samples, with the OCR task updated to emit line separators. Florence-2 is a sequence-to-sequence vision-language model: a DaViT vision encoder produces 577 visual tokens per 768×768 image (`preprocessor_config.json` `image_seq_length`) that are projected into a BART-style encoder-decoder language model; at inference the decoder generates text conditioned on the image tokens and a task prompt such as `<CAPTION>`, `<OD>` or `<OCR_WITH_REGION>`, and region outputs are emitted as quantised `<loc_N>` tokens that the processor converts back to pixel boxes. Adaptation is by prompt only — no training or in-context examples happen in this repository. The converted checkpoint loads through the native `transformers` `Florence2ForConditionalGeneration` and `Florence2Processor` classes with no custom code (`config.json` `model_type: florence2`, `transformers_version: 4.56.1`); 776505344 parameters were instantiated with zero missing, unexpected or mismatched keys on the smoke run. What this repository adds is packaging: `Florence2Pipeline` in `src/florence2_vision_language_pipeline/pipeline.py`, digest verification of the local snapshot (`verify_snapshot`, `stage_missing_files`), a loading-info check that refuses a checkpoint the native classes do not fully consume, input validation, a fixed output contract, a `character_error_rate` helper and a CPU smoke run.
 
