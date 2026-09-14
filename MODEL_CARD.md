@@ -2,6 +2,7 @@
 license: mit
 model_card_spec: "1.1"
 pipeline_tag: image-text-to-text
+task: "Others - Vision-Language"
 base_model: florence-community/Florence-2-large
 date_published: "2024-06-15"
 date_published_source: "microsoft/Florence-2-large Hub repository creation (`initial commit` 2024-06-15); the florence-community port carrying the same weights was created 2025-09-11"
