@@ -7,7 +7,7 @@ date_published: "2024-06-15"
 date_published_source: "microsoft/Florence-2-large Hub repository creation (`initial commit` 2024-06-15); the florence-community port carrying the same weights was created 2025-09-11"
 ---
 
-# Florence-2-large (DIMER package v0.1.0) — Prompt-driven Vision-Language Model (Caption, OCR, Detection, Grounding)
+# Florence-2-large — Prompt-driven Vision-Language Model (Caption, OCR, Detection, Grounding)
 
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-florence--community%2FFlorence--2--large-ffcc4d?style=flat)](https://huggingface.co/florence-community/Florence-2-large)
 [![arXiv Paper](https://img.shields.io/badge/arXiv-2311.06242-b31b1b.svg)](https://arxiv.org/abs/2311.06242)
