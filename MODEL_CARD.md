@@ -3,6 +3,8 @@ license: mit
 model_card_spec: "1.1"
 pipeline_tag: image-text-to-text
 base_model: florence-community/Florence-2-large
+date_published: "2024-06-15"
+date_published_source: "microsoft/Florence-2-large Hub repository creation (`initial commit` 2024-06-15); the florence-community port carrying the same weights was created 2025-09-11"
 ---
 
 # Florence-2-large (DIMER package v0.1.0) — Prompt-driven Vision-Language Model (Caption, OCR, Detection, Grounding)
@@ -10,7 +12,6 @@ base_model: florence-community/Florence-2-large
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-florence--community%2FFlorence--2--large-ffcc4d?style=flat)](https://huggingface.co/florence-community/Florence-2-large)
 [![arXiv Paper](https://img.shields.io/badge/arXiv-2311.06242-b31b1b.svg)](https://arxiv.org/abs/2311.06242)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://huggingface.co/microsoft/Florence-2-large/resolve/main/LICENSE)
-[![Pipeline](https://img.shields.io/badge/Pipeline-florence2--vision--language--pipeline-2ea44f?style=flat&logo=github)](https://github.com/kurtvalcorza/florence2-vision-language-pipeline)
 
 > [!WARNING]
 > ⚠️ **Provided for research, training, and evaluation purposes only.** Model weights are redistributed unmodified under their upstream license, which controls your use, including any commercial use or redistribution; the accompanying code and notebooks are released under this repository's license. All of it is supplied **"as is"**, without warranty of any kind, and has not been validated for production, clinical, or safety-critical use. Running the notebooks downloads third-party weights and datasets governed by their own licenses and consumes compute on your own Colab/Kaggle account. To the maximum extent permitted by law, the maintainers of this repository and the DIMER platform accept no liability for any damages arising from their use. Hosting implies no affiliation with or endorsement by the original authors.
@@ -27,7 +28,7 @@ This pipeline provides a ready-to-run interactive Google Colab notebook that exe
 
 ---
 
-###### Description
+#### Description
 
 `florence-community/Florence-2-large` is the "official transformers converted checkpoint" (pinned README note) of Microsoft's 0.77 B-parameter Florence-2-large (Xiao et al., arXiv:2311.06242), pinned here to revision `4271c66b88cdbc05735372ec13b2360108de5317`; the README carries over Microsoft's statement that this is a continued-pretrained variant with a 4k context length, trained on a further 0.1 B samples, with the OCR task updated to emit line separators. Florence-2 is a sequence-to-sequence vision-language model: a DaViT vision encoder produces 577 visual tokens per 768×768 image (`preprocessor_config.json` `image_seq_length`) that are projected into a BART-style encoder-decoder language model; at inference the decoder generates text conditioned on the image tokens and a task prompt such as `<CAPTION>`, `<OD>` or `<OCR_WITH_REGION>`, and region outputs are emitted as quantised `<loc_N>` tokens that the processor converts back to pixel boxes. Adaptation is by prompt only — no training or in-context examples happen in this repository. The converted checkpoint loads through the native `transformers` `Florence2ForConditionalGeneration` and `Florence2Processor` classes with no custom code (`config.json` `model_type: florence2`, `transformers_version: 4.56.1`); 776505344 parameters were instantiated with zero missing, unexpected or mismatched keys on the smoke run. What this repository adds is packaging: `Florence2Pipeline` in `src/florence2_vision_language_pipeline/pipeline.py`, digest verification of the local snapshot (`verify_snapshot`, `stage_missing_files`), a loading-info check that refuses a checkpoint the native classes do not fully consume, input validation, a fixed output contract, a `character_error_rate` helper and a CPU smoke run.
 
@@ -59,7 +60,7 @@ FLD-5B's images were collected from web sources (the paper names ImageNet-22k, O
 
 ###### Environment
 
-Operating environment: Python 3.12 with `torch==2.14.0`, `transformers==4.57.6`, `pillow==11.3.0` (exact pins in `pyproject.toml`). CUDA is optional: `from_pretrained` picks `cuda:0` when available with float16 (the dtype the checkpoint ships in, `config.json` `dtype`), else CPU with float32; the DIMER build environment is CPU-only (`CUDA_VISIBLE_DEVICES=-1`). On this repository's smoke run (Windows venv, CPU, float32, `HF_HUB_OFFLINE=1`, one 256×256 synthetic white image with a centred red square) loading the verified snapshot took 7.11 s, `<CAPTION>` with 3 beams took 4.91 s and `<OD>` 9.02 s (21.03 s total); a repeat `<CAPTION>` call returned identical text. The CUDA/float16 path is not executed in this repository. Data environment: inputs are assumed to be natural photographs or document images resembling the web-sourced FLD-5B distribution, upright, with the subject or text legible at 768 px; line drawings, medical or satellite imagery, rotated scans and dense small print fall outside that assumption and degrade in ways the pipeline does not measure.
+Operating environment: Python 3.12 with `torch==2.14.0`, `torchvision==0.29.0`, `torchaudio==2.11.0`, `transformers==4.57.6`, `pillow==11.3.0` (exact pins in `pyproject.toml`). CUDA is optional: `from_pretrained` picks `cuda:0` when available with float16 (the dtype the checkpoint ships in, `config.json` `dtype`), else CPU with float32; the DIMER build environment is CPU-only (`CUDA_VISIBLE_DEVICES=-1`). On this repository's smoke run (Windows venv, CPU, float32, `HF_HUB_OFFLINE=1`, one 256×256 synthetic white image with a centred red square) loading the verified snapshot took 7.11 s, `<CAPTION>` with 3 beams took 4.91 s and `<OD>` 9.02 s (21.03 s total); a repeat `<CAPTION>` call returned identical text. The CUDA/float16 path is not executed in this repository. Data environment: inputs are assumed to be natural photographs or document images resembling the web-sourced FLD-5B distribution, upright, with the subject or text legible at 768 px; line drawings, medical or satellite imagery, rotated scans and dense small print fall outside that assumption and degrade in ways the pipeline does not measure.
 
 #### Metrics
 
@@ -116,7 +117,7 @@ The pipeline must not be used for surveillance, biometric or demographic profili
 
 ## Runtime
 
-- Pins: `torch==2.14.0`, `transformers==4.57.6`, `huggingface-hub==0.36.2`, `safetensors==0.8.0`, `numpy==2.5.3`, `pillow==11.3.0`; Python 3.12. The build venv carries `torch 2.14.0+cu130`.
+- Pins: `torch==2.14.0`, `torchvision==0.29.0`, `torchaudio==2.11.0`, `transformers==4.57.6`, `huggingface-hub==0.36.2`, `safetensors==0.8.0`, `numpy==2.5.3`, `pillow==11.3.0`; Python 3.12. The build venv carries `torch 2.14.0+cu130`.
 - Precision: float32 on CPU (the measured path); float16 on CUDA (not executed here). Preprocessing per `preprocessor_config.json`: resize to 768×768, bicubic, ImageNet mean/std; 577 visual tokens.
 - Measured (Windows venv `dimer-next16`, CPU, `CUDA_VISIBLE_DEVICES=-1`, `HF_HUB_OFFLINE=1`, 2026-09-12): device `cpu`, source `local-snapshot`; load 7.11 s with loading info `missing_keys 0 / unexpected_keys 0 / mismatched_keys 0 / error_msgs 0` (776505344 parameters); `<CAPTION>` (`max_new_tokens=64`, 3 beams) 4.91 s → `"a red square with a white background"`; `<OD>` 9.02 s → `{"bboxes": [[63, 63, 193, 193]], "labels": ["flag"]}` for a square drawn at 64–192 px; total 21.03 s; repeat `<CAPTION>` identical; exit 0. The only stderr line was the library's slow-image-processor notice.
 - Tests: `pytest -q -o addopts= tests` — 15 passed, offline, no weights required; `ruff check src tests` clean.
