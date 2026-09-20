@@ -150,7 +150,7 @@ stated runtime, not general estimates.
 
 | Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
 |---|---|---|---|---|---|
-| 2026-09-20 | package API at `@P:PROBE_SHA@` (pre-flight, not the notebook blob) | Kaggle Tesla T4 script kernel (`kurtvalcorza/dimer-probe-florence2-e2e` v1; `torch 2.14.0+cu130`, `transformers 4.57.6`, Python 3.12, `cuda:0`, float32), branch cloned, pins installed, snapshot staged from the Hub | `tests/test_model_backed.py` (@P:MB_RESULT@) and the recipe probe: the eight pinned row groups read over range requests (800 lines, digest match), empty and constant baselines, frozen `<OCR>` on the 140 test lines, `adapt(epochs=6, lr=5e-5, batch_size=8)` with validation-CER selection, adapted evaluation, artifact round trip | @P:PROBE_WALL@ | @P:PROBE_OUTCOME@ |
+| 2026-09-20 | package API at `@P:PROBE_SHA@` (pre-flight, not the notebook blob) | Kaggle Tesla T4 script kernel (`kurtvalcorza/dimer-probe-florence2-e2e` v1; `torch 2.14.0+cu130`, `transformers 4.57.6`, Python 3.12, `cuda:0`, float32), branch cloned, pins installed, snapshot staged from the Hub | `tests/test_model_backed.py` (@P:MB_RESULT@) and the recipe probe: the eight pinned row groups read over range requests (800 lines, digest match), empty and constant baselines, frozen `<OCR>` on the 140 test lines, `adapt(epochs=6, lr=5e-5, batch_size=8)` with validation-CER selection, adapted evaluation, artifact round trip; a second kernel (v2, 2574 s) repeated the model-backed suite (7/7 in 128 s) and swept lr 1e-4 and 2e-4 for eight epochs | @P:PROBE_WALL@ | @P:PROBE_OUTCOME@ The sweep: lr 1e-4 × 8 → validation 0.969 → 0.929 / 0.815 / 0.852 / 0.809 / 0.801 / 0.807 / 0.828 / 0.804 (epoch 5), test 0.798 / 1.032; lr 2e-4 × 8 → 0.835 / 0.813 / 0.831 / 0.826 / 0.817 / 0.882 / 0.830 / 0.817 (epoch 2), test 0.807 / 1.051 — the same plateau |
 | 2026-09-13 | `ece9e7f72e5915c7e84208415c0e803955e1b774` / `e807053d55c0849b2436ff85bfc0e8c194f1eca4` (`MULTI-CAPABILITY`, superseded) | Colab CLI → fresh Python 3.12.3 venv/interpreter; Tesla T4, 15,360 MiB | Unchanged default sample, no repository checkout, empty per-model cache and weights | 159.3 s / 163.9 s | PASS — 8/8 cells; [retained run](verification/2026-09-13/README.md); not evidence for the `E2E` blob |
 
 ## Current status
@@ -168,5 +168,6 @@ the vision tower and the encoder are frozen, so what they cannot resolve in a 12
 stays unread; the decoder that was tuned serves every task token, and the drawing re-run after adaptation is the only
 evidence about what happened to `<CAPTION>` and `<OD>`. Beam search is deterministic on a fixed device and dtype, but the
 training of four decoder layers is not bit-reproducible across GPUs, so a Kaggle number a few hundredths off the build
-record is the expected spread, not a finding. The sibling GOT-OCR 2.0 row scored 0.759 CER on the same split with the
-same recipe; the two are compared in the card.
+record is the expected spread, not a finding. The adapted rate plateaus near 0.80 at every learning rate tried (5e-5, 1e-4, 2e-4), so a decoder-only adapter
+cannot make this encoder read cursive — the docs say so rather than tuning further. The sibling GOT-OCR 2.0 row scored
+0.759 CER on the same split with the same design; the two are compared in the card.
