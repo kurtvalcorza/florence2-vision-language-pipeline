@@ -19,3 +19,6 @@ weights/**/.cache/
 # Retained verification exports are evidence, not local runtime output
 !docs/verification/2026-09-13/outputs/
 !docs/verification/2026-09-13/outputs/**
+
+# Belfort-line row-group cache (fetched at run time, digest-pinned)
+weights/belfort/
