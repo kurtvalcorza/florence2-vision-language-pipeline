@@ -74,7 +74,7 @@ Measured on CPU (float32, Windows venv, 2026-09-12): load 7.11 s; `<CAPTION>` 4.
 
 ## Release status
 
-**Candidate.** Static/unit checks — including the standalone generator parity checks (`tools/build_notebook.py --check`, `tests/test_notebook_parity.py`) — do not constitute clean-runtime notebook evidence. The earlier `MULTI-CAPABILITY` notebook's Colab T4 run (2026-09-13) is retained as history and is not evidence for the `E2E` blob; the supported-runtime run of the exact release revision is recorded in `docs/release-verification.md` when it exists.
+**Release-grade** — the `E2E` notebook blob `035c2c02` (committed at `bc7e9b8`) executed top-to-bottom in a clean Kaggle Tesla T4 runtime on 2026-09-20 (11/11 ok (1 restart after install cell), 1298.6 s); the record is in `docs/release-verification.md` and `STATUS.md`. Static and unit checks — including the standalone generator parity checks — are necessary but were never the evidence; the hosted run is. A later change to the carried modules or the notebook returns the status to Candidate until re-verified.
 
 ## Documents
 
