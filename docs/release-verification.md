@@ -108,17 +108,17 @@ Before changing the registry status from `Candidate` to `Release-grade`:
      written and the multi-capability `evaluation_report` verdict `sample-sanity` (OCR of the drawn text; the
      multi-capability card recorded the square labelled `flag` and an exact OCR — observations, not assertions);
    - Section 6: the empty baseline (CER 1.0 exactly), the constant-transcript baseline (≈ 0.94) and the frozen model's
-     test rates (≈ @P:FROZEN_CER@ CER / @P:FROZEN_WER@ WER in the Tesla T4 build record — the model emits a dash or
+     test rates (≈ 0.992 CER / 1.002 WER in the Tesla T4 build record — the model emits a dash or
      nothing for cursive) with four hypotheses printed under their references;
    - Section 7: `pipe.adapt` printing epoch 0 as the frozen model, 67,188,736 trainable of 776,505,344 parameters,
      `first_trainable_layer` 8, and a six-epoch history with the validation CER falling (build record:
-     @P:VAL_CURVE@, `best_epoch` @P:BEST_EPOCH@);
+     0.969 → 0.969 / 0.821 / 0.852 / 0.801 / 0.808 / 0.799, `best_epoch` 6);
    - Section 8: `pipe.evaluate` on the validation and test splits with the four-way comparison, the hypothesis
      lengths and `outputs/…_evaluation_report.json` written (the cell asserts the adapted test CER is below the frozen
-     one and below 1.0 — @P:ADAPTED_CER@ against @P:FROZEN_CER@ in the build record, WER @P:FROZEN_WER@ →
-     @P:ADAPTED_WER@; the adapted model also clears the constant baseline, reported, not asserted);
+     one and below 1.0 — 0.797 against 0.992 in the build record, WER 1.002 →
+     1.012; the adapted model also clears the constant baseline, reported, not asserted);
    - Section 9: six example panels under `outputs/…_examples/`; the three capabilities re-run on the drawing by the
-     adapted model with `outputs/…_preview_adapted.png` (build record: @P:DRAWING_AFTER@ — a recorded observation,
+     adapted model with `outputs/…_preview_adapted.png` (build record: before adaptation caption `a red and blue circle with the word dimer 2026 on it`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000); after adaptation caption `Dim 2026 logo with a red and blue circle.`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000) — a recorded observation,
      not an assertion); `pipe.save_artifact` writing `outputs/…_adapter/{adapter.safetensors,manifest.json}` (66
      tensors, about 269 MB) and `Florence2Pipeline.from_artifact` reloading it with 8/8 identical transcripts on
      eight test lines (the cell asserts it); `outputs/…_result.json` written with `NOTEBOOK_SOURCE`, the model
@@ -150,7 +150,7 @@ stated runtime, not general estimates.
 
 | Date (UTC) | Commit / notebook blob | Executor | Path exercised | Wall | Outcome |
 |---|---|---|---|---|---|
-| 2026-09-20 | package API at `@P:PROBE_SHA@` (pre-flight, not the notebook blob) | Kaggle Tesla T4 script kernel (`kurtvalcorza/dimer-probe-florence2-e2e` v1; `torch 2.14.0+cu130`, `transformers 4.57.6`, Python 3.12, `cuda:0`, float32), branch cloned, pins installed, snapshot staged from the Hub | `tests/test_model_backed.py` (@P:MB_RESULT@) and the recipe probe: the eight pinned row groups read over range requests (800 lines, digest match), empty and constant baselines, frozen `<OCR>` on the 140 test lines, `adapt(epochs=6, lr=5e-5, batch_size=8)` with validation-CER selection, adapted evaluation, artifact round trip; a second kernel (v2, 2574 s) repeated the model-backed suite (7/7 in 128 s) and swept lr 1e-4 and 2e-4 for eight epochs | @P:PROBE_WALL@ | @P:PROBE_OUTCOME@ The sweep: lr 1e-4 × 8 → validation 0.969 → 0.929 / 0.815 / 0.852 / 0.809 / 0.801 / 0.807 / 0.828 / 0.804 (epoch 5), test 0.798 / 1.032; lr 2e-4 × 8 → 0.835 / 0.813 / 0.831 / 0.826 / 0.817 / 0.882 / 0.830 / 0.817 (epoch 2), test 0.807 / 1.051 — the same plateau |
+| 2026-09-20 | package API at `d9ffce4` (pre-flight, not the notebook blob) | Kaggle Tesla T4 script kernel (`kurtvalcorza/dimer-probe-florence2-e2e` v1; `torch 2.14.0+cu130`, `transformers 4.57.6`, Python 3.12, `cuda:0`, float32), branch cloned, pins installed, snapshot staged from the Hub | `tests/test_model_backed.py` (7 passed in 121.41s (0:02:01)) and the recipe probe: the eight pinned row groups read over range requests (800 lines, digest match), empty and constant baselines, frozen `<OCR>` on the 140 test lines, `adapt(epochs=6, lr=5e-5, batch_size=8)` with validation-CER selection, adapted evaluation, artifact round trip; a second kernel (v2, 2574 s) repeated the model-backed suite (7/7 in 128 s) and swept lr 1e-4 and 2e-4 for eight epochs | 1340 s | **PASS** — frozen 0.992 / 1.002 CER / WER on the 140-line split; validation CER 0.969 → 0.969 → 0.821 → 0.852 → 0.801 → 0.808 → 0.799 (epoch 6 kept), cache 342 s, 761 s in all, peak 6.42 GB, test **0.797 / 1.012**, reload parity 8/8 The sweep: lr 1e-4 × 8 → validation 0.969 → 0.929 / 0.815 / 0.852 / 0.809 / 0.801 / 0.807 / 0.828 / 0.804 (epoch 5), test 0.798 / 1.032; lr 2e-4 × 8 → 0.835 / 0.813 / 0.831 / 0.826 / 0.817 / 0.882 / 0.830 / 0.817 (epoch 2), test 0.807 / 1.051 — the same plateau |
 | 2026-09-13 | `ece9e7f72e5915c7e84208415c0e803955e1b774` / `e807053d55c0849b2436ff85bfc0e8c194f1eca4` (`MULTI-CAPABILITY`, superseded) | Colab CLI → fresh Python 3.12.3 venv/interpreter; Tesla T4, 15,360 MiB | Unchanged default sample, no repository checkout, empty per-model cache and weights | 159.3 s / 163.9 s | PASS — 8/8 cells; [retained run](verification/2026-09-13/README.md); not evidence for the `E2E` blob |
 
 ## Current status

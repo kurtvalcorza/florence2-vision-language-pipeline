@@ -64,8 +64,8 @@ TEMPLATE = {
         "lines and the three capabilities on the drawing with the adapted model, exports the adapter as safetensors with a "
         "manifest, and reloads that artifact into a fresh pipeline to verify transcript parity. The default path needs no "
         "repository clone, no DIMER worker or service, no credential, no upload dialog and no configuration edit "
-        "(NOTEBOOK_SPEC 2.0 §5). On a Tesla T4 the default path took about @P:T4_TOTAL_MIN@ minutes of cell time (six epochs "
-        "@P:T4_ADAPT_S@ s, frozen scoring of 140 lines @P:T4_FROZEN_S@ s); a CUDA runtime is used automatically when present, "
+        "(NOTEBOOK_SPEC 2.0 §5). On a Tesla T4 the default path took about 20 minutes of cell time, 22 with the pinned install and its restart (six epochs "
+        "822 s, frozen scoring of 140 lines 90 s); a CUDA runtime is used automatically when present, "
         "and **a CPU runtime is not practical for the default path** (beam-search decoding of some 800 lines plus 600 cached "
         "forwards of a 777M-parameter model)."
     ),
@@ -87,7 +87,7 @@ TEMPLATE = {
         "What this notebook adds to inference is **adaptation of one task on transcribed lines**. Florence-2's `<OCR>` was "
         "trained on printed and scene text; nineteenth-century French council minutes in cursive handwriting — the "
         "Belfort-line dataset — are far outside that distribution, and on them the frozen model reads nothing: it emits a "
-        "dash or an empty string for almost every line, a character error rate of **@P:FROZEN_CER@** on the 140 held-out "
+        "dash or an empty string for almost every line, a character error rate of **0.992** on the 140 held-out "
         "lines (the build record's Tesla T4 figure), the empty baseline's 1.0 in all but name. So the honest question is "
         "narrow: does a bounded fine-tuning of the last four decoder layers on 600 transcribed lines move the held-out "
         "**CER** and **WER** on a line-disjoint test split past two **non-adapted baselines** and the frozen model — and "
@@ -123,7 +123,7 @@ TEMPLATE = {
         "cursive minutes stand in for your documents. The repository exposes none of these."
     ),
     "prerequisites": [
-        "- **Runtime:** a fresh supported runtime with a CUDA GPU (Google Colab or Kaggle GPU, Python 3.12). The default path uses CUDA automatically when present. Generation is batched for the corpus stages — every `<OCR>` prompt is the same 587 tokens (577 image tokens plus the task token), so a batch needs no padding — and the build record measured @P:T4_FROZEN_S@ s to score 140 lines with 3-beam search and @P:T4_ADAPT_S@ s for the six epochs (caching the encoder outputs for 600 lines took @P:T4_CACHE_S@ s) on a Tesla T4, about @P:T4_TOTAL_MIN@ minutes of cell time for the whole path; a CPU runtime would take hours. The pinned `torch==2.14.0` install and the 1.54 GB checkpoint are the large downloads of the run; the row groups are about 44 MB.",
+        "- **Runtime:** a fresh supported runtime with a CUDA GPU (Google Colab or Kaggle GPU, Python 3.12). The default path uses CUDA automatically when present. Generation is batched for the corpus stages — every `<OCR>` prompt is the same 587 tokens (577 image tokens plus the task token), so a batch needs no padding — and the build record measured 90 s to score 140 lines with 3-beam search and 822 s for the six epochs (caching the encoder outputs for 600 lines took 371 s) on a Tesla T4, about 20 minutes of cell time for the whole path; a CPU runtime would take hours. The pinned `torch==2.14.0` install and the 1.54 GB checkpoint are the large downloads of the run; the row groups are about 44 MB.",
         "- **Knowledge:** basic Python and PIL; what a sequence-to-sequence model's task prompt and beam search are; what a bounding box in pixel coordinates is; what character and word error rate measure and why they are not capped at 1; why a self-drawn image is a plumbing check while a held-out split of one labelled set is a measurement of that set only.",
         "- **Data contract:** records are `{id, image, text}` — `image` a PIL image (or a file decodable by Pillow) with sides within 1..16,384 px and at most 4096² pixels, `text` its transcript (1..512 characters after whitespace runs are collapsed; case and punctuation kept). Ids match `[A-Za-z0-9_.:-]{1,64}` and are unique; a dataset needs 8..5,000 records; splitting de-duplicates by decoded pixels so no image lands in two splits. BYOD accepts one zip (or directory) of images plus a `transcripts.csv` in the layout named above.",
         "- **Validation is structural, not semantic:** every image is decoded and every transcript checked for length, but nothing checks that a transcript says what its image shows — a mislabelled set is fine-tuned on without complaint.",
@@ -286,8 +286,8 @@ TEMPLATE = {
                 "line: what corpus statistics buy without reading the image. The **frozen model** is scored by `pipe.evaluate`, "
                 "which runs `<OCR>` in batches of `EVAL_BATCH_SIZE` with `NUM_BEAMS` beams under a `LINE_MAX_NEW_TOKENS` "
                 "budget and returns the hypotheses with the rates. Expect the frozen model **at the empty baseline**: the build "
-                "record measured @P:FROZEN_CER@ — it emits a dash or nothing for cursive it cannot read (hypotheses "
-                "@P:FROZEN_HYP_RATIO@ times the reference length); read four of them under the references."
+                "record measured 0.992 — it emits a dash or nothing for cursive it cannot read (hypotheses "
+                "0.04 times the reference length); read four of them under the references."
             ),
             "code": (
                 "METRICS = ('cer', 'wer', 'cer_macro', 'exact_match')\n"
@@ -319,10 +319,10 @@ TEMPLATE = {
                 "at a fixed learning rate, gradient clipping at 1.0, seeded shuffling, no scheduler, no augmentation. Epoch 0 "
                 "records the frozen model's validation rates; every epoch is scored on the 60 validation lines with the same "
                 "beam search, and the epoch with the **lowest validation CER** is kept.\n\n"
-                "Watch the validation CER fall from @P:VAL_CER_0@ to @P:VAL_CER_BEST@ (epoch @P:BEST_EPOCH@ in the build "
-                "record) while the loss drops from about @P:LOSS_1@ to @P:LOSS_LAST@ — and then watch the validation curve flatten "
+                "Watch the validation CER fall from 0.969 to 0.799 (epoch 6 in the build "
+                "record) while the loss drops from about 6.63 to 3.13 — and then watch the validation curve flatten "
                 "near 0.80 while the training loss keeps falling. Four decoder layers move the model from silence to something "
-                "that is not yet reading (@P:ADAPTED_READ@): the frozen encoder's representation of a 128-px cursive line "
+                "that is not yet reading (the adapted model gets 20 % of the characters right and 0 of 140 lines exact): the frozen encoder's representation of a 128-px cursive line "
                 "squashed into 768 × 768 is the bottleneck, not the optimiser — the build record's faster rates (1e-4 and 2e-4 "
                 "for eight epochs) reached the same plateau (test CER 0.798 and 0.807). The sibling GOT-OCR 2.0 row reached 0.759 on "
                 "the same split with the same design; the two models are compared in the card, not here."
@@ -350,13 +350,14 @@ TEMPLATE = {
                 "The test lines were never used for training or epoch selection, and no image appears in two splits. The "
                 "adapted model is scored exactly as the frozen model was in Section 6 and the four systems are put side by "
                 "side. Read it in this order: **CER** first (the measure the epoch was selected on — the build record measured "
-                "@P:FROZEN_CER@ → **@P:ADAPTED_CER@**, past both baselines), then **WER** (@P:FROZEN_WER@ → @P:ADAPTED_WER@: "
-                "whole words, not just characters), then the hypothesis length (from @P:FROZEN_HYP_RATIO@ times the reference "
-                "length to @P:ADAPTED_HYP_RATIO@: the adapted model now writes lines of the right length), then the exact-match "
-                "rate (@P:ADAPTED_EXACT@ of the 140 lines read perfectly). The cell asserts the adapted CER is below the frozen "
-                "one and below the empty baseline's 1.0. One hundred and forty lines from one seeded split give **no dispersion "
+                "0.992 → **0.797**, past both baselines — and one fifth of the characters right is what that number means), "
+                "then **WER** (1.002 → 1.012: it did not move, so the character gain sits inside words and no whole word is "
+                "read), then the hypothesis length (from 0.04 times the reference length to 0.58: the adapted model writes "
+                "something for every line but still not enough of it), then the exact-match rate (0 of the 140 lines read "
+                "perfectly). The cell asserts the adapted CER is below the frozen one and below the empty baseline's 1.0 — the "
+                "contract holds; the reading does not. One hundred and forty lines from one seeded split give **no dispersion "
                 "estimate**; the deltas are sample-sanity evidence that the adaptation contract works, not a benchmark, and a "
-                "gain on one French council's minutes says nothing about other hands, other languages or other scripts until "
+                "result on one French council's minutes says nothing about other hands, other languages or other scripts until "
                 "you measure them."
             ),
             "code": (
@@ -398,7 +399,7 @@ TEMPLATE = {
                 "rows should read the cursive the frozen rows left blank. The drawing from Section 5 is then run again through "
                 "all three capabilities by the adapted model — the decoder that was tuned serves every task token, so this is "
                 "a small look at what the adaptation did *outside* its task and its corpus: the build record measured "
-                "@P:DRAWING_AFTER@ — one drawing of evidence, not a measurement.\n\n"
+                "before adaptation caption `a red and blue circle with the word dimer 2026 on it`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000); after adaptation caption `Dim 2026 logo with a red and blue circle.`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000) — one drawing of evidence, not a measurement.\n\n"
                 "`pipe.save_artifact` writes the trained tensors — the four decoder layers and the embedding norm, about "
                 "269 MB in float32 — as `adapter.safetensors`, with a `manifest.json` recording the artifact format, the base "
                 "model id and revision, the digest of the base `model.safetensors`, the tensor names, the file size and SHA-256, "
@@ -462,9 +463,9 @@ TEMPLATE = {
     "closing": (
         "## Interpretation and limits\n\n"
         "A prompt-driven document model reads the print it was trained on, and nineteenth-century cursive French is not among "
-        "it: the frozen `<OCR>` scores a character error rate of @P:FROZEN_CER@ on the Belfort lines — silence, a dash or "
+        "it: the frozen `<OCR>` scores a character error rate of 0.992 on the Belfort lines — silence, a dash or "
         "nothing for almost every line. A bounded fine-tuning of the last four decoder layers on 600 transcribed lines moves it "
-        "off the floor but not far (@P:ADAPTED_CER@ CER and @P:ADAPTED_WER@ WER in the build record, @P:ADAPTED_EXACT@ of "
+        "off the floor but not far (0.797 CER and 1.012 WER in the build record, 0 of "
         "the held-out lines exact; the constant-transcript baseline scores 0.944) and the validation curve plateaus there at "
         "every rate tried, with a 269 MB adapter that reloads line-for-line. That is the claim: the adaptation contract "
         "works end to end on one task of a multi-task model with a real labelled set, and the numbers it produces are read as "
@@ -477,7 +478,7 @@ TEMPLATE = {
         "reading order or layout. So a gain here says the contract works on one council's minutes, not that the adapted model "
         "handles other hands, other languages, other scripts or your scans. The decoder that was tuned serves every task "
         "token: the drawing re-run in Section 9 is one image of evidence about what the tuning did to `<CAPTION>` and `<OD>` "
-        "(@P:DRAWING_AFTER@), not a measurement, and a deployment that needs the other tasks must measure them after "
+        "(before adaptation caption `a red and blue circle with the word dimer 2026 on it`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000); after adaptation caption `Dim 2026 logo with a red and blue circle.`, 1 box(es) labelled `poster`, OCR `DIMER 2026` (CER 0.000)), not a measurement, and a deployment that needs the other tasks must measure them after "
         "adapting. The decoder was adapted, not the vision tower: what the encoder cannot resolve in a 128-px line squashed "
         "into a 768 × 768 square stays unread.\n\n"
         "Three things to carry to real data. **Baselines first:** the empty and constant-transcript rates on *your* transcripts, "
