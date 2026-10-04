@@ -1,0 +1,70 @@
+[colab] Parsing notebook '/home/kurt/colab-runs/florence2-vision-language-pipeline-9c4e95a-ba054b/florence2_vision_language_colab_9c4e95a_colab-cli-t4.ipynb'...
+[colab] Executing cell 1/13 - Infrastructure: install the locked runtime into an isolated environment...
+{'isolated_environment': '/content/dimer_isolated_env', 'isolated_python': '3.12.12', 'kernel_python': '3.13.15', 'locked_packages': 48, 'setup_seconds': 52}
+[colab] Executing cell 2/13 - Infrastructure: route the remaining cells to the isolated environment...
+Every later code cell now runs in /content/dimer_isolated_env/bin/python (pid 879).
+[colab] Executing cell 3/13 - Infrastructure: record the runtime...
+{'notebook_source': {'repository': 'florence2-vision-language-pipeline', 'repository_revision': '0d15dffb95c87c956190e17a76981518c5c5146e', 'embedded_module': 'src/florence2_vision_language_pipeline/pipeline.py', 'embedded_modules': ['src/florence2_vision_language_pipeline/pipeline.py', 'src/florence2_vision_language_pipeline/metrics.py', 'src/florence2_vision_language_pipeline/samples.py'], 'module_sha256': '52d02425351f82224c1471c19f4666beb432f511253b466d093e25ec7d05fc61', 'generator': 'build_notebook.py/2.1', 'notebook_spec': '2.2'}, 'python': '3.12.12', 'torch': '2.14.0+cu130', 'transformers': '4.57.6', 'PIL': '11.3.0', 'cuda': True}
+[colab] Executing cell 4/13 - Infrastructure: carried module `src/florence2_vision_language_pipeline/pipeline.py` (you may run it without reading it)...
+[colab] Executing cell 5/13 - Infrastructure: carried module `src/florence2_vision_language_pipeline/metrics.py` (you may run it without reading it)...
+[colab] Executing cell 6/13 - Infrastructure: carried module `src/florence2_vision_language_pipeline/samples.py` (you may run it without reading it)...
+[colab] Executing cell 7/13 - Infrastructure: pin, stage and verify the model (you may run it without reading it)...
+{'model_id': 'florence-community/Florence-2-large', 'revision': '4271c66b88cdbc05735372ec13b2360108de5317', 'license': 'mit', 'files': 12, 'total_bytes': 1558929750}
+{'weights_dir': '/content/weights/florence-2-large-community', 'fetched': ['README.md', 'added_tokens.json', 'config.json', 'generation_config.json', 'merges.txt', 'model.safetensors', 'preprocessor_config.json', 'processor_config.json', 'special_tokens_map.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json']}
+{'verified_files': 12, 'revision': '4271c66b88cdbc05735372ec13b2360108de5317'}
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+{'device': 'cuda:0', 'source': 'local-snapshot'}
+[colab] Executing cell 8/13 - florence2_vision_language-17...
+{'data_source': 'Belfort-line (test split), first eight parquet row groups @ c4a74bbd39f2 (MIT (Teklia; Belfort municipal council minutes, Zenodo record 8041668; Tarride et al. 2023, https://doi.org/10.1145/3604951.3605517))', 'raw_rows': {'row_groups': 8, 'lines': 800, 'bytes': 42403899, 'seconds': 16.4}, 'splits': {'train': 600, 'validation': 60, 'test': 140}, 'split_unit': 'line image (no page or writer field)'}
+{'train': {'n': 600, 'chars': {'min': 1, 'max': 120, 'total': 24494}, 'words': 4150, 'width': {'min': 145, 'max': 8956}, 'height': {'min': 128, 'max': 128}, 'digest': '64186dce18ca12d3...'}}
+{'validation': {'n': 60, 'chars': {'min': 3, 'max': 98, 'total': 2454}, 'words': 412, 'width': {'min': 306, 'max': 7543}, 'height': {'min': 128, 'max': 128}, 'digest': '5768e17faca8ca13...'}}
+{'test': {'n': 140, 'chars': {'min': 2, 'max': 105, 'total': 6169}, 'words': 1035, 'width': {'min': 197, 'max': 7872}, 'height': {'min': 128, 'max': 128}, 'digest': '0e815da406cccff9...'}}
+{'transcripts_also_in_train': {'validation': 2, 'test': 5}, 'test_examples': ['440', 'Le Conseil Municipal', "canalisation d'eau", '100', "Après en avoir délibéré, à l'unanimité :"]}
+{'example': {'id': 'belfort-test-732', 'image': [3773, 128], 'text': 'de subvention. Rapp. M. Birckel.'}}
+{'probe': 'duplicate id', 'rejected': "duplicate id 'same'"}
+{'probe': 'empty transcript', 'rejected': 'records[0]: text has 0 characters after whitespace normalisation; 1..512 are required'}
+{'probe': 'image above the side ceiling', 'rejected': 'records[0]: image side outside 1..MAX_IMAGE_SIDE=16384 px: (16385, 8)'}
+{'probe': 'too small', 'rejected': '3 records; 8..5000 are required'}
+[colab] Executing cell 9/13 - florence2_vision_language-19...
+{'ceilings': {'MIN_IMAGE_SIDE': 1, 'MAX_IMAGE_SIDE': 16384, 'MAX_IMAGE_PIXELS': 16777216, 'MAX_NEW_TOKENS': 1024, 'DEFAULT_MAX_NEW_TOKENS': 256, 'DEFAULT_LINE_MAX_NEW_TOKENS': 128, 'MAX_TEXT_CHARS (grounding text_input)': 1000, 'MAX_TRANSCRIPT_CHARS (training transcript)': 512, 'NUM_BEAMS': 3, 'MIN_RECORDS': 8, 'MAX_RECORDS': 5000, 'device': 'cuda:0', 'dtype': 'float32'}}
+{'TASKS_WITHOUT_TEXT': ('<CAPTION>', '<DETAILED_CAPTION>', '<MORE_DETAILED_CAPTION>', '<OD>', '<DENSE_REGION_CAPTION>', '<REGION_PROPOSAL>', '<OCR>', '<OCR_WITH_REGION>'), 'TASKS_WITH_TEXT': ('<CAPTION_TO_PHRASE_GROUNDING>',)}
+{'drawing': 'synthetic_shapes_text_512', 'sha256': '950f2e0f69919f36...', 'manifest_verdict': 'accepted', 'findings': 1}
+{'frozen': {'seconds': {'<CAPTION>': 2.511, '<OD>': 0.756, '<OCR>': 0.739}, 'checks': {'caption_is_text': True, 'od_boxes_and_labels_aligned': True, 'od_boxes_inside_image': True, 'ocr_is_text': True, 'deterministic_settings': True, 'identity_reported': True}, 'caption': 'a red and blue circle with the word dimer 2026 on it', 'detections': [('poster', [0, 0, 511, 511])], 'ocr': 'DIMER 2026', 'ocr_cer': {'character_error_rate': 0.0}, 'verdict': 'sample-sanity'}}
+[colab] Executing cell 10/13 - florence2_vision_language-21...
+{'empty_baseline': {'cer': 1.0, 'wer': 1.0, 'cer_macro': 1.0, 'exact_match': 0.0}, 'n': 140, 'note': 'empty string for every line'}
+{'constant_baseline': {'cer': 0.944, 'wer': 0.999, 'cer_macro': 0.952, 'exact_match': 0.0}, 'note': "constant training transcript 'idem'"}
+{'frozen_model_test': {'cer': 0.992, 'wer': 1.002, 'cer_macro': 0.962, 'exact_match': 0.0}, 'n': 140, 'ref_chars': 6169, 'hyp_chars': 250, 'truncated': 0, 'verdict': 'measured', 'adapted': False, 'seconds': 87.7}
+{'definitions': {'cer': 'character error rate, micro: total character edits (insertions + deletions + substitutions) over total reference characters; 0 is perfect, values above 1 mean over-generation', 'wer': 'word error rate, micro: total word edits over total reference words after lower-casing and whitespace tokenisation; punctuation kept', 'cer_macro': 'mean of the per-line character error rates (each line weighted equally regardless of length)', 'wer_macro': 'mean of the per-line word error rates', 'exact_match': 'fraction of lines whose hypothesis equals the reference after whitespace normalisation'}}
+{'id': 'belfort-test-761', 'reference': "régulariser l'achat", 'frozen': '1'}
+{'id': 'belfort-test-763', 'reference': 'Renvoi à la Commission des travaux de diverses questions', 'frozen': '-'}
+{'id': 'belfort-test-642', 'reference': 'divers instruments de musique', 'frozen': '-'}
+{'id': 'belfort-test-156', 'reference': "Le Maire demande au Conseil s'il y a lieu d'accorder à quelques uns des", 'frozen': '-'}
+[colab] Executing cell 11/13 - florence2_vision_language-23...
+{'epoch': 0, 'train_loss': None, 'val_cer': 0.969, 'val_wer': 0.981, 'val_cer_macro': 0.94, 'val_exact_match': 0.017, 'note': 'frozen model'}
+{'epoch': 1, 'train_loss': 6.6341, 'val_cer': 0.969, 'val_wer': 1.036, 'val_cer_macro': 1.01, 'val_exact_match': 0.017}
+{'epoch': 2, 'train_loss': 5.8761, 'val_cer': 0.821, 'val_wer': 1.015, 'val_cer_macro': 0.85, 'val_exact_match': 0.0}
+{'epoch': 3, 'train_loss': 5.2364, 'val_cer': 0.852, 'val_wer': 1.005, 'val_cer_macro': 0.878, 'val_exact_match': 0.017}
+{'epoch': 4, 'train_loss': 4.5353, 'val_cer': 0.801, 'val_wer': 1.087, 'val_cer_macro': 0.84, 'val_exact_match': 0.0}
+{'epoch': 5, 'train_loss': 3.8282, 'val_cer': 0.808, 'val_wer': 1.024, 'val_cer_macro': 0.838, 'val_exact_match': 0.0}
+{'epoch': 6, 'train_loss': 3.1267, 'val_cer': 0.799, 'val_wer': 1.032, 'val_cer_macro': 0.835, 'val_exact_match': 0.0}
+{'task': '<OCR>', 'trainable_parameters': 67188736, 'total_parameters': 776505344, 'first_trainable_layer': 8, 'learning_rate': 5e-05, 'seed': 0, 'best_epoch': 6, 'selection': 'lowest validation CER', 'selection_split': 'validation', 'loss': 'sequence-to-sequence cross-entropy over the transcript tokens and the end token, teacher-forced from the decoder start token; computed on the cached frozen encoder outputs', 'cache_seconds': 351.656, 'seconds': 786.5}
+[colab] Executing cell 12/13 - florence2_vision_language-25...
+{'cer': {'empty': 1.0, 'constant': 0.944, 'frozen': 0.992, 'adapted': 0.797}}
+{'wer': {'empty': 1.0, 'constant': 0.999, 'frozen': 1.002, 'adapted': 1.012}}
+{'cer_macro': {'empty': 1.0, 'constant': 0.952, 'frozen': 0.962, 'adapted': 0.824}}
+{'exact_match': {'empty': 0.0, 'constant': 0.0, 'frozen': 0.0, 'adapted': 0.0}}
+{'delta_vs_frozen': {'cer': -0.195, 'wer': 0.01, 'cer_macro': -0.138, 'exact_match': 0.0}}
+{'hypothesis_length': {'ref_chars': 6169, 'frozen_hyp_chars': 250, 'adapted_hyp_chars': 3570, 'frozen_truncated': 0, 'adapted_truncated': 0}}
+{'transcript_breakdown': {'all_test_lines': 140, 'transcript_also_in_train': 5, 'transcript_unseen': 135, 'frozen_unseen_transcripts': {'cer': 0.992, 'wer': 1.002, 'n': 135}, 'frozen_all': {'cer': 0.992, 'wer': 1.002, 'n': 140}, 'adapted_unseen_transcripts': {'cer': 0.796, 'wer': 1.012, 'n': 135}, 'adapted_all': {'cer': 0.797, 'wer': 1.012, 'n': 140}}}
+{'adapted_beats_frozen': True, 'adapted_beats_both_baselines': True, 'best_epoch': 6}
+Reading: CER fell but WER did not: the gain is in characters inside words, and no more whole words are read than before.
+run   data epochs       lr best  frozen adapted     wer
+  1 sample      6    5e-05    6   0.992   0.797   1.012
+{'report': 'outputs/florence2_vision_language_evaluation_report.json'}
+[colab] Executing cell 13/13 - florence2_vision_language-27...
+{'examples': ['belfort-test-112.png', 'belfort-test-156.png', 'belfort-test-48.png', 'belfort-test-642.png', 'belfort-test-761.png', 'belfort-test-763.png'], 'rows': ['reference', 'frozen transcript', 'adapted transcript']}
+{'adapted': {'seconds': {'<CAPTION>': 0.843, '<OD>': 0.82, '<OCR>': 0.747}, 'checks': {'caption_is_text': True, 'od_boxes_and_labels_aligned': True, 'od_boxes_inside_image': True, 'ocr_is_text': True, 'deterministic_settings': True, 'identity_reported': True}, 'caption': 'Dim 2026 logo with a red and blue circle.', 'detections': [('poster', [0, 0, 511, 511])], 'ocr': 'DIMER 2026', 'ocr_cer': {'character_error_rate': 0.0}, 'verdict': 'sample-sanity'}}
+{'artifact': 'outputs/florence2_vision_language_adapter', 'format': 'org.valcorza.florence-2-large-community.adapter.v1', 'tensors': 106, 'bytes': 268769008, 'sha256': '3c79728c44b45675...', 'task': '<OCR>', 'best_epoch': 6}
+{'reload_parity': {'identical_lines': 8, 'of': 8}, 'reloaded_best_epoch': 6}
+['florence2_vision_language_adapter', 'florence2_vision_language_evaluation_report.json', 'florence2_vision_language_example_line.png', 'florence2_vision_language_examples', 'florence2_vision_language_input_manifest.json', 'florence2_vision_language_preview_adapted.png', 'florence2_vision_language_preview_frozen.png', 'florence2_vision_language_result.json', 'florence2_vision_language_train.csv']
+[colab] Saving notebook with outputs to '/home/kurt/colab-runs/florence2-vision-language-pipeline-9c4e95a-ba054b/florence2_vision_language_colab_9c4e95a_colab-cli-t4_output.ipynb'...
