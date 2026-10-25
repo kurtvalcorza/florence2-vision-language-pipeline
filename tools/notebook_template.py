@@ -27,8 +27,9 @@ the pretrained model on every re-run, with the grounding experiment runnable as 
 """
 # ruff: noqa: E501  -- markdown prose and code-cell text are kept on single lines for readable rendering
 
-H = ('the two recorded Colab T4 runs (revision `9c4e95a`, notebook blob `5f38bb88`, 2026-10-04; revision `ae0d589`, notebook blob '
-     '`3f56e9b4`, 2026-10-25; both recorded in `docs/release-verification.md`), which printed the same rates and transcripts')
+H = ('the three recorded Colab T4 runs (revision `9c4e95a`, notebook blob `5f38bb88`, 2026-10-04; revisions `ae0d589` and `7e1a13f`, '
+     'notebook blobs `3f56e9b4` and `057dc93c`, 2026-10-25; all recorded in `docs/release-verification.md`), which printed the same '
+     'rates and transcripts')
 
 TEMPLATE = {
     "package": "florence2_vision_language_pipeline",
@@ -97,8 +98,8 @@ TEMPLATE = {
         "manifest, and reloads that artifact into a fresh pipeline to verify transcript parity. The default path needs no "
         "repository clone, no DIMER worker or service, no credential, no upload dialog and no configuration edit "
         "(NOTEBOOK_SPEC 2.2 §5). A CUDA runtime is used automatically when present, and **a GPU runtime is required in "
-        "practice**: each of " + H + " took about 20 to 22 minutes of wall time (1206.9 s and 1290.2 s; adaptation "
-        "786.5 s and 857.2 s, encoder cache 351.7 s and 377.7 s), while on CPU the beam-search decoding of some 800 lines plus "
+        "practice**: " + H + " took between 19.7 and 21.5 minutes of wall time (1206.9 s, 1290.2 s and 1183.9 s; adaptation "
+        "786.5 s, 857.2 s and 782.3 s; encoder cache 351.7 s, 377.7 s and 351.7 s; your run may take a different time), while on CPU the beam-search decoding of some 800 lines plus "
         "600 cached forwards of a 777M-parameter model take hours. Building the isolated environment comes on top of this."
     ),
     "byod": (
@@ -622,9 +623,10 @@ TEMPLATE = {
                 "**0.797**, past both baselines — one fifth of the characters right — while the WER went 1.002 → 1.012: it did "
                 "not fall, so the character gain sits inside words and no whole word is read. The hypotheses grew from 0.04 "
                 "to 0.58 times the reference length (the adapted model writes something for every line, but not enough of it), "
-                "and 0 of the 140 lines were read exactly. The transcript breakdown from that run's per-line hypotheses: on the "
+                "and 0 of the 140 lines were read exactly. The transcript breakdown from those runs' per-line hypotheses: on the "
                 "135 test lines whose transcript does not occur in training the adapted CER is **0.796** (frozen 0.992); "
-                "the 5 repeated lines (84 characters) scored 0.821, so the verbatim repeats do not carry the result. What the "
+                "the other 5 test lines repeat a training transcript word for word, and with the unseen-transcript CER (0.796) next to "
+                "the all-lines 0.797 the verbatim repeats do not carry the result. What the "
                 "breakdown cannot remove is the shared pages and hands (Section 4).</details>\n\n"
                 "## 9. Look at the lines, re-run the three capabilities, export the adapter and reload it\n\n"
                 "Six held-out lines are written as panels (`outputs/{stem}_examples/`: the line image with the reference, the "
@@ -710,7 +712,7 @@ TEMPLATE = {
     "closing": (
         "**What to notice:** the panels (references against adapted transcripts), what changed in the drawing's caption, "
         "box and OCR, the artifact's tensor count and size, and the reload-parity line.\n\n"
-        "<details><summary>Check your reasoning</summary>Partly, and yes. In the recorded T4 run the caption changed from "
+        "<details><summary>Check your reasoning</summary>Partly, and yes. In the three recorded Colab T4 runs (blobs `5f38bb88`, `3f56e9b4` and `057dc93c`) the caption changed from "
         "`a red and blue circle with the word dimer 2026 on it` to `Dim 2026 logo with a red and blue circle.`, the single "
         "`poster` box covering the drawing stayed, and the OCR still read `DIMER 2026` exactly (CER 0.000) — tuning the "
         "shared decoder on handwriting touched the caption task it was never trained on, which is one drawing of evidence, "
@@ -720,7 +722,7 @@ TEMPLATE = {
         "from it.</details>\n\n"
         "## 10. Your turn — change one thing: a higher learning rate\n\n"
         "Optional; **Predict → Change one thing → Run → Observe → Explain**. It retrains, so it takes about as long as "
-        "Sections 7–9 did (Section 7 alone took 822 s on the T4 record).\n\n"
+        "Sections 7–9 did (Section 7 alone took between 782.3 and 857.2 s in the three recorded Colab T4 runs).\n\n"
         "1. **Predict:** with `LEARNING_RATE = 1e-4` (twice the default), will the validation CER fall faster in the first "
         "epochs, will it end lower than the default run's plateau near 0.80, and will the training loss end lower? Write your "
         "guesses next to the default run's row in the Section 8 run history.\n"
@@ -728,7 +730,7 @@ TEMPLATE = {
         "3. **Run:** select the Section 7 cell and choose **Runtime → Run after**. Section 7 reloads the pretrained model "
         "before adapting, Section 8 compares against the same Section 6 frozen score and adds a row to the run history, and "
         "Section 9 exports and reloads the new adapter.\n"
-        "4. **Observe:** in Section 7, epoch 0 shows the *frozen* validation CER again (0.969 in the recorded run), not the "
+        "4. **Observe:** in Section 7, epoch 0 shows the *frozen* validation CER again (0.969 in the three recorded Colab T4 runs), not the "
         "adapted one — the sign that the model was reset; read how the loss and the validation CER move. In Section 8, compare "
         "the two rows of the run history and the reading line.\n"
         "5. **Explain:** in one or two sentences, did doubling the learning rate move the held-out CER, and is the "

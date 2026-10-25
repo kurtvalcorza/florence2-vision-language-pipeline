@@ -445,6 +445,18 @@ def test_tier_c_header_names_both_recorded_colab_t4_runs():
     md = " ".join(_markdown().split())
     for gone in ("hosted runs of this revision are pending", "a worked answer from the the "):
         assert gone not in md, gone
-    for quoted in ("the two recorded Colab T4 runs (revision `9c4e95a`", "notebook blob `3f56e9b4`, 2026-10-25",
-                   "(1206.9 s and 1290.2 s; adaptation 786.5 s and 857.2 s, encoder cache 351.7 s and 377.7 s)"):
+    for quoted in ("the three recorded Colab T4 runs (revision `9c4e95a`", "notebook blobs `3f56e9b4` and `057dc93c`, 2026-10-25",
+                   "(1206.9 s, 1290.2 s and 1183.9 s; adaptation 786.5 s, 857.2 s and 782.3 s;"):
+        assert quoted in md, quoted
+
+
+def test_historical_wording_records_every_hosted_run():
+    # Historical wording (2026-10-26): timings are records of every named hosted run; the unprinted
+    # "5 repeated lines ... 0.821" figure is gone. Fails on PR #11 head c0ae054.
+    md = " ".join(_markdown().split())
+    for gone in ("about 20 to 22 minutes", "scored 0.821", "In the recorded T4 run", "822 s on the T4 record",
+                 "(0.969 in the recorded run)", "the two recorded Colab T4 runs"):
+        assert gone not in md, gone
+    for quoted in ("took between 19.7 and 21.5 minutes of wall time", "notebook blobs `3f56e9b4` and `057dc93c`",
+                   "between 782.3 and 857.2 s in the three recorded Colab T4 runs"):
         assert quoted in md, quoted
