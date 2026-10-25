@@ -86,7 +86,7 @@ Measured on CPU (float32, Windows venv, 2026-09-12): load 7.11 s; `<CAPTION>` 4.
 
 Repository code is Apache-2.0 (see `LICENSE`). The upstream weights are MIT; the Belfort-line sample is MIT and is not redistributed; see `docs/WEIGHTS.md`.
 
-Current source update: snapshot validation now runs before model-library imports (Kokoro also validates the language first), so rejected requests fail with the intended validation error even when model libraries are absent. The standalone notebook was regenerated from this source. The retained 2026-09-13 GPU run identifies the earlier notebook blob; the current notebook blob's fresh GPU execution (Colab CLI, Tesla T4, 2026-10-04) is recorded in `docs/release-verification.md`. Status remains **Candidate**.
+Current source update: snapshot validation now runs before model-library imports (Kokoro also validates the language first), so rejected requests fail with the intended validation error even when model libraries are absent. The standalone notebook was regenerated from this source. The retained 2026-09-13 GPU run identifies the earlier notebook blob; fresh GPU executions (Colab CLI, Tesla T4) of blob `5f38bb88` (2026-10-04) and of blobs `3f56e9b4`, `057dc93c` and the current blob `e0f94665` (commit `cbba430`, 2026-10-25; 13/13 cells, one pass, no restart, 0 errors, 1142.7 s) are recorded in `docs/release-verification.md`. Status remains **Candidate**.
 
 ## AI Assistance Disclosure
 
