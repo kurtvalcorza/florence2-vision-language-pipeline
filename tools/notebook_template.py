@@ -27,7 +27,8 @@ the pretrained model on every re-run, with the grounding experiment runnable as 
 """
 # ruff: noqa: E501  -- markdown prose and code-cell text are kept on single lines for readable rendering
 
-H = 'the 2026-10-04 Colab T4 run of revision `9c4e95a` (notebook blob `5f38bb88`, recorded in `docs/release-verification.md`)'
+H = ('the two recorded Colab T4 runs (revision `9c4e95a`, notebook blob `5f38bb88`, 2026-10-04; revision `ae0d589`, notebook blob '
+     '`3f56e9b4`, 2026-10-25; both recorded in `docs/release-verification.md`), which printed the same rates and transcripts')
 
 TEMPLATE = {
     "package": "florence2_vision_language_pipeline",
@@ -96,8 +97,8 @@ TEMPLATE = {
         "manifest, and reloads that artifact into a fresh pipeline to verify transcript parity. The default path needs no "
         "repository clone, no DIMER worker or service, no credential, no upload dialog and no configuration edit "
         "(NOTEBOOK_SPEC 2.2 §5). A CUDA runtime is used automatically when present, and **a GPU runtime is required in "
-        "practice**: " + H + " took 1206.9 s of wall time (adaptation 786.5 s, encoder cache 351.7 s); hosted runs of "
-        "this revision are pending, while on CPU the beam-search decoding of some 800 lines plus "
+        "practice**: each of " + H + " took about 20 to 22 minutes of wall time (1206.9 s and 1290.2 s; adaptation "
+        "786.5 s and 857.2 s, encoder cache 351.7 s and 377.7 s), while on CPU the beam-search decoding of some 800 lines plus "
         "600 cached forwards of a 777M-parameter model take hours. Building the isolated environment comes on top of this."
     ),
     "byod": (
@@ -161,7 +162,7 @@ TEMPLATE = {
         "— the isolated environment, the carried code and the model verification — and can be run without study; their "
         "code is collapsed. The learning path starts in Section 4. Form fields (`# @param`) are the only values meant to be "
         "edited; the defaults reproduce the recorded path. Each stage asks you to **predict** before it runs, and the next "
-        "cell opens with **What to notice** and a collapsible **Check your reasoning** block with a worked answer from the "
+        "cell opens with **What to notice** and a collapsible **Check your reasoning** block with a worked answer from "
         "" + H + " (your GPU's numbers can differ in the "
         "second or third decimal). Each optional experiment names the cell to change and the cells to re-run. Section 10 is "
         "a **change-one-thing activity**. **Troubleshooting**, a **Glossary** and a **Conclusion** template are at the end. "

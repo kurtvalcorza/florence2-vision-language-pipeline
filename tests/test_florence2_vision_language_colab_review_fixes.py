@@ -438,3 +438,13 @@ def test_split_dataset_refusal_message_names_counts():
     records = [{"id": f"r{k}", "image": _line(k), "text": "x"} for k in range(5)]
     with pytest.raises(ValueError, match="the train split would hold 3 records.*5 records, 5 distinct images"):
         split_dataset(records)
+
+
+def test_tier_c_header_names_both_recorded_colab_t4_runs():
+    # Tier C prose-mismatch fix (2026-10-25): no stale "pending" status; timing gives both runs' values.
+    md = " ".join(_markdown().split())
+    for gone in ("hosted runs of this revision are pending", "a worked answer from the the "):
+        assert gone not in md, gone
+    for quoted in ("the two recorded Colab T4 runs (revision `9c4e95a`", "notebook blob `3f56e9b4`, 2026-10-25",
+                   "(1206.9 s and 1290.2 s; adaptation 786.5 s and 857.2 s, encoder cache 351.7 s and 377.7 s)"):
+        assert quoted in md, quoted
