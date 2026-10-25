@@ -1,5 +1,6 @@
 """Final prose pass (Kurt's ruling, 2026-10-26): the flagged expectation sentences are removed or
-rewritten as records of named runs. florence2: Prerequisites build-record timing and Section 7 spread expectation.
+rewritten as records of named runs.
+florence2: Prerequisites build-record timing and Section 7 spread expectation.
 Fails on PR head 24c2dce.
 """
 import json
