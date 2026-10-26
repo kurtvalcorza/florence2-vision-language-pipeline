@@ -1,7 +1,7 @@
 """Final prose pass (Kurt's ruling, 2026-10-26): the flagged expectation sentences are removed or
 rewritten as records of named runs.
-florence2: Prerequisites build-record timing and Section 7 spread expectation.
-Fails on PR head 24c2dce.
+florence2: Prerequisites build-record timing and Section 7 spread expectation. Follow-up: md0 and Troubleshooting decimal-spread expectations removed.
+Fails on PR head b1e6e9e.
 """
 import json
 from pathlib import Path
@@ -19,10 +19,13 @@ GONE = [
     'about 20 minutes of cell time',
     'expect your epoch rates to differ',
     'the kept epoch to move by one',
+    "your GPU's numbers can differ in the second or third decimal",
+    'differences in the second or third decimal are expected',
 ]
 PRESENT = [
     'the header gives the recorded Colab T4 timings',
     'can differ from the recorded runs; read your own epoch history.',
+    'so your numbers can differ from the recorded runs',
 ]
 
 
