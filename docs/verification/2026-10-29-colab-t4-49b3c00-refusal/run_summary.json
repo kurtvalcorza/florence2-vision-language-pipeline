@@ -1,0 +1,72 @@
+{
+  "repo": "florence2-vision-language-pipeline",
+  "sha": "49b3c00155dba44e458113958010994da19d8f43",
+  "notebook": "tutorials/florence2_vision_language_colab.ipynb",
+  "blob": "b54d76b372e63bd3b7404d0a67a99ffa20f84042",
+  "gpu": "T4",
+  "session": "suite-florence2-49b3c00-ba05",
+  "started_utc": "2026-10-29T04:15:02+00:00",
+  "runner": "Colab CLI `colab exec -f` on a fresh session (not a browser Run all)",
+  "overrides": [
+    {
+      "name": "USE_BYOD",
+      "from": "False",
+      "to": "True"
+    },
+    {
+      "name": "BYOD_PATH",
+      "from": "''",
+      "to": "'/etc/hostname'"
+    }
+  ],
+  "run_copy_blob": "63ab7101cfeee8933cf69869a05b19105c9e8657",
+  "run_copy_sha256": "aaaaff50c987c07a194f1c48ae73ed80b45c69339c6ad46eac24a923462862ee",
+  "run_copy_note": "refusal run: the run copy is the committed notebook with the listed assignment overrides, cut immediately after the refusal cell and re-serialised (nbformat layout); input_unchanged compares against that copy",
+  "truncated_after_cell": "florence2_vision_language-17",
+  "refusal_cell_ref": "florence2_vision_language-17",
+  "refusal_cell_index": 8,
+  "cells_dropped": 11,
+  "code_cells_dropped": 5,
+  "original_sha256": "1a58f8353aac49a580be703a33a7c0e897689ea8f8e6ff886ad68868cf4ce316",
+  "status": "[suite-florence2-49b3c00-ba05] gpu-t4-s-usw4a2-37wr84gg0c3ik | Hardware: T4 | Shape: Standard | Variant: GPU | Status: IDLE",
+  "exec_exit_code": 0,
+  "stopped": true,
+  "stop_verified": true,
+  "wall_s": 113.0,
+  "input_unchanged": true,
+  "executed_file": "florence2_vision_language_colab_49b3c00_colab-cli-t4_output.ipynb",
+  "log_cells": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "log_total": 8,
+  "code_cells": 8,
+  "executed_cells": 5,
+  "errors": [
+    {
+      "cell": "florence2_vision_language-17",
+      "ename": "IsolatedCellRefusal",
+      "evalue": "hostname: ValueError: /etc/hostname is neither a directory nor a zip file; fix the file, then run this cell and every cell after it again (the earlier results of this session and their outputs/ files were removed)."
+    }
+  ],
+  "execution_counts": [],
+  "sequential": null,
+  "executed_sha256": "29bcb391371cba4f0a57074b90a5dc6023aab556538fb28e5e732b53046d6cae",
+  "log_sequential_complete": true,
+  "mode": "expect_refusal",
+  "refusal_line": "Refused: hostname: ValueError: /etc/hostname is neither a directory nor a zip file; fix the file, then run this cell and every cell after it again (the earlier results of this session and their outputs/ files were removed).",
+  "halting_cell_index": 8,
+  "halting_cell_id": "florence2_vision_language-17",
+  "error_cells": [
+    8
+  ],
+  "refusal_fail_reasons": [],
+  "refusal_ok": true,
+  "verdict": "PASS"
+}
